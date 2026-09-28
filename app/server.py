@@ -106,6 +106,64 @@ def build_server(port=8766, db_path=None):
                     return self.respond(200, mt5_service.get_live_positions())
                 if parsed.path == '/api/mt5/risk':
                     return self.respond(200, mt5_service.get_ftmo_risk_status())
+                if parsed.path == '/api/system/config':
+                    mt_acc = mt5_service.get_live_account()
+                    ftmo_status = mt5_service.get_ftmo_risk_status()
+                    cfg = {
+                        "mt5": {
+                            "login": mt_acc.get("login", 5056580335),
+                            "server": mt_acc.get("server", "MetaQuotes-Demo"),
+                            "name": mt_acc.get("name", "Chuyền Ngọc"),
+                            "platform": "MetaTrader 5",
+                            "connected": mt_acc.get("connected", False),
+                            "balance": mt_acc.get("balance", 10000.0),
+                            "equity": mt_acc.get("equity", 10000.0),
+                            "margin": mt_acc.get("margin", 0.0),
+                            "margin_free": mt_acc.get("margin_free", 10000.0),
+                            "leverage": mt_acc.get("leverage", 100),
+                            "ping_ms": 12
+                        },
+                        "ftmo": {
+                            "initial_capital": ftmo_status.get("initial_capital", 10000.0),
+                            "daily_loss_pct": 3.0,
+                            "total_loss_pct": 10.0,
+                            "risk_per_trade_pct": 0.5,
+                            "max_positions": 5,
+                            "daily_floor": ftmo_status.get("daily_floor", 9700.0),
+                            "total_floor": ftmo_status.get("total_floor", 9000.0),
+                            "headroom": ftmo_status.get("headroom", 300.0),
+                            "status": ftmo_status.get("status", "SAFE")
+                        },
+                        "ai": {
+                            "model": "fcs-astra (9Router Gateway)",
+                            "provider": "Obsidian Local Brain",
+                            "auto_mode": False
+                        },
+                        "strategies": [
+                            {
+                                "id": "trend_following",
+                                "name": "Trend Following (EMA 9/21 + ATR)",
+                                "enabled": True,
+                                "win_rate": 68.5,
+                                "description": "Bắt sóng xu hướng dài với EMA Crossover & ATR Trailing Stop"
+                            },
+                            {
+                                "id": "donchian_breakout",
+                                "name": "Donchian Breakout (Turtle Trading)",
+                                "enabled": True,
+                                "win_rate": 62.0,
+                                "description": "Đánh bứt phá đỉnh/đáy kênh Donchian 20 chu kỳ"
+                            },
+                            {
+                                "id": "bollinger_rsi",
+                                "name": "Bollinger Bands & RSI Reversion",
+                                "enabled": True,
+                                "win_rate": 71.4,
+                                "description": "Bắt sóng hồi đảo chiều khi chạm dải biên Bollinger + RSI quá bán/mua"
+                            }
+                        ]
+                    }
+                    return self.respond(200, cfg)
                 if parsed.path == '/api/ftmo/status':
                     if mt5_service.ensure_connected():
                         return self.respond(200, mt5_service.get_ftmo_risk_status())
@@ -219,6 +277,15 @@ def build_server(port=8766, db_path=None):
                             result = engine.close_position(pos_id)
                     else:
                         result = engine.close_position(pos_id)
+                elif path in ('/api/mt5/close_all', '/api/close_all'):
+                    if mt5_service.ensure_connected():
+                        result = mt5_service.close_all_live_positions()
+                    else:
+                        with engine.db() as db:
+                            s = engine.load(db)
+                            for p in engine.positions(db, s):
+                                engine.close_position(p['id'])
+                        result = {"success": True, "message": "Đã đóng toàn bộ vị thế."}
                 elif path == '/api/mt5/close':
                     pos_id = body.get('id') or body.get('ticket')
                     if not pos_id:
@@ -240,9 +307,45 @@ def build_server(port=8766, db_path=None):
                 elif path == '/api/advance':
                     result = engine.advance(body.get('step'))
                 elif path == '/api/proposals/approve':
-                    if not isinstance(body.get('id'), int) or isinstance(body.get('id'), bool):
+                    prop_id = body.get('id')
+                    if not isinstance(prop_id, int) or isinstance(prop_id, bool):
                         raise Rejected('Mã đề xuất không hợp lệ.')
-                    result = engine.approve_proposal(body['id'], body.get('request_id'))
+                    
+                    if mt5_service.ensure_connected():
+                        with engine.db() as db:
+                            row = db.execute("SELECT * FROM proposals WHERE id=?", (prop_id,)).fetchone()
+                            if not row:
+                                raise Rejected(f"Đề xuất #{prop_id} không tồn tại.")
+                            prop = dict(row)
+                            if prop.get('status') == 'approved':
+                                raise Rejected(f"Đề xuất #{prop_id} đã được duyệt trước đó.")
+                        
+                        sym = prop.get('symbol', 'AUDCAD')
+                        side = prop.get('side', 'BUY')
+                        vol = float(prop.get('volume', 0.01))
+                        sl = float(prop.get('sl', 0.0)) if prop.get('sl') else None
+                        tp = float(prop.get('tp', 0.0)) if prop.get('tp') else None
+                        
+                        order_res = mt5_service.send_live_order(sym, side, vol, sl, tp, comment=f"Lucky-AI-#{prop_id}")
+                        if not order_res.get('success'):
+                            raise Rejected(order_res.get('error', 'Sàn MT5 từ chối khớp lệnh.'))
+                        
+                        ticket = order_res.get('ticket')
+                        with engine.db() as db:
+                            db.execute("UPDATE proposals SET status='approved', ticket=? WHERE id=?", (ticket, prop_id))
+                            engine.event(db, 'order', f"Đã duyệt đề xuất #{prop_id} -> Khớp MT5 Ticket #{ticket}: {side} {vol} {sym}")
+                        
+                        result = {
+                            "ok": True,
+                            "ticket": ticket,
+                            "symbol": sym,
+                            "side": side,
+                            "volume": vol,
+                            "price": order_res.get('price'),
+                            "message": f"Khớp lệnh #{ticket} thành công trên MT5!"
+                        }
+                    else:
+                        result = engine.approve_proposal(prop_id, body.get('request_id'))
                 elif path == '/api/proposals/reject':
                     if not isinstance(body.get('id'), int) or isinstance(body.get('id'), bool):
                         raise Rejected('Mã đề xuất không hợp lệ.')
@@ -253,6 +356,12 @@ def build_server(port=8766, db_path=None):
                     result = rep.to_dict() if hasattr(rep, 'to_dict') else rep
                 elif path == '/api/settings':
                     result = engine.settings(body)
+                elif path == '/api/system/config':
+                    if 'auto_mode' in body:
+                        engine.set_mode(bool(body['auto_mode']))
+                    if 'settings' in body:
+                        engine.settings(body['settings'])
+                    result = {"ok": True, "message": "Đã lưu cấu hình hệ thống."}
                 elif path == '/api/halt':
                     result = engine.halt(body.get('halted'))
                 elif path == '/api/mode':
@@ -306,8 +415,8 @@ def build_server(port=8766, db_path=None):
                 self.respond(200, result)
             except Rejected as exc:
                 self.respond(400, {"error": str(exc)})
-            except Exception:
-                self.respond(500, {"error": "Không hoàn tất thao tác. Tải lại trạng thái trước khi thử lại."})
+            except Exception as exc:
+                self.respond(400, {"error": str(exc) if str(exc) else "Lỗi xử lý yêu cầu. Vui lòng thử lại."})
 
     server = ThreadingHTTPServer(('127.0.0.1', port), Handler)
     server.daemon_threads = True

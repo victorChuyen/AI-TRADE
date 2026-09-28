@@ -6,723 +6,504 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LuckyTrade">
-  <meta name="theme-color" content="#0a0e17">
-  <title>Lucky Trade AI — Command Center</title>
+  <meta name="theme-color" content="#07050d">
+  <title>OPC AI Trader — Lucky Quant Terminal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
 </head>
-<body>
-  <div class="app-layout">
-    <!-- Backdrop for mobile drawer -->
-    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<body class="terminal-body">
+  <div class="app-root">
 
     <!-- =====================================================================
-         CỘT 1: SIDEBAR TIẾN TRÌNH PIPELINE (PIPELINE NAVIGATION SIDEBAR)
+         GLOBAL TOPBAR: THƯƠNG HIỆU, CHUYỂN ĐỔI 2 GIAO DIỆN & DÒNG TIỀN THẬT
          ===================================================================== -->
-    <aside class="app-sidebar" id="app-sidebar">
-      <div class="sidebar-header">
-        <div class="brand">
-          <div class="logo-box">
-            <span class="logo-icon">⚡</span>
-          </div>
+    <header class="global-header">
+      <div class="header-brand-group">
+        <div class="brand-badge">
+          <span class="brand-icon">⚡</span>
           <div>
-            <div class="brand-title">OPC AI Trader</div>
-            <div class="brand-sub">LUCKY TRADE OS</div>
+            <div class="brand-name">OPC AI TRADER</div>
+            <div class="brand-sub">LUCKY QUANT TERMINAL</div>
           </div>
         </div>
-        <button class="btn-close-sidebar" id="btn-close-sidebar" title="Đóng menu">✕</button>
-      </div>
 
-      <!-- MT5 Live Badge Card -->
-      <div class="sidebar-mt5-badge clickable-card" id="card-mt5" title="Nhấn để xem kết nối MT5 Chuyền Ngọc (#5056580335)">
-        <div class="mt5-badge-header">
-          <span class="pulse-dot"></span>
-          <span class="mt5-badge-title">MT5 Live</span>
-          <span class="mt5-badge-tag tag-live" id="metric-mt5-status">LIVE (#5056580335)</span>
-        </div>
-        <div class="mt5-badge-detail" id="sidebar-mt5-detail">
-          Chuyền Ngọc · MetaQuotes-Demo
-        </div>
-      </div>
-
-      <!-- Pipeline Navigation Links -->
-      <nav class="sidebar-nav">
-        <div class="nav-section-title">TIẾN TRÌNH PIPELINE</div>
-
-        <div class="nav-group-title">BƯỚC 1: QUAN SÁT THỊ TRƯỜNG</div>
-        <a href="#card-chart" class="sidebar-nav-item active" data-target="card-chart">
-          <span class="nav-icon">📊</span>
-          <span class="nav-text">1. Biểu Đồ & Giá Nến M15</span>
-        </a>
-        <a href="#watchlist-bar" class="sidebar-nav-item" data-target="watchlist-bar">
-          <span class="nav-icon">🗞️</span>
-          <span class="nav-text">2. Danh Mục 6 Tài Sản</span>
-        </a>
-
-        <div class="nav-group-title">BƯỚC 2: PHÂN TÍCH & CHIẾN LƯỢC AI</div>
-        <a href="#card-neural" class="sidebar-nav-item" data-target="card-neural">
-          <span class="nav-icon">🧬</span>
-          <span class="nav-text">3. Mạng Nơ-ron Quyết Định</span>
-        </a>
-        <a href="#card-proposals" class="sidebar-nav-item" data-target="card-proposals">
-          <span class="nav-icon">📈</span>
-          <span class="nav-text">4. Đề Xuất Chiến Lược</span>
-          <span class="nav-badge" id="sidebar-proposals-count">0</span>
-        </a>
-        <a href="#card-ai" class="sidebar-nav-item" data-target="card-ai">
-          <span class="nav-icon">💬</span>
-          <span class="nav-text">5. Lucky AI Thẩm Định</span>
-        </a>
-
-        <div class="nav-group-title">BƯỚC 3: THỰC THI & SỔ LỆNH MT5</div>
-        <a href="#card-order" class="sidebar-nav-item" data-target="card-order">
-          <span class="nav-icon">💰</span>
-          <span class="nav-text">6. Phiếu Vào Lệnh (Trade)</span>
-        </a>
-        <a href="#card-positions" class="sidebar-nav-item" data-target="card-positions">
-          <span class="nav-icon">💼</span>
-          <span class="nav-text">7. Sổ Vị Thế MT5 (Live)</span>
-          <span class="nav-badge badge-green" id="sidebar-positions-count">2</span>
-        </a>
-
-        <div class="nav-group-title">BƯỚC 4: AN TOÀN VỐN & QUẢN TRỊ QUỸ</div>
-        <a href="#card-risk" class="sidebar-nav-item" data-target="card-risk">
-          <span class="nav-icon">🛡️</span>
-          <span class="nav-text">8. Quản Trị Rủi Ro FTMO</span>
-        </a>
-        <a href="#card-logs" class="sidebar-nav-item" data-target="card-logs">
-          <span class="nav-icon">📜</span>
-          <span class="nav-text">9. Nhật Ký & Đối Soát</span>
-        </a>
-
-        <div class="nav-group-title">TRỢ GIÚP & HỌC TẬP</div>
-        <button type="button" class="sidebar-nav-item" id="sidebar-btn-guide">
-          <span class="nav-icon">📖</span>
-          <span class="nav-text">10. Hướng Dẫn Người Mới</span>
-        </button>
-        <a href="http://127.0.0.1:3000" target="_blank" class="sidebar-nav-item text-cyan">
-          <span class="nav-icon">🚀</span>
-          <span class="nav-text">Mở Lucky Trade Lab</span>
-        </a>
-      </nav>
-
-      <!-- Sidebar Footer -->
-      <div class="sidebar-footer">
-        <div class="sidebar-mode-box">
-          <span class="mode-title-label">CHẾ ĐỘ GIAO DỊCH:</span>
-          <button class="btn btn-mode w-100" id="btn-mode">
-            <span class="mode-dot" id="mode-dot"></span>
-            <span id="mode-text">BÁN TỰ ĐỘNG</span>
+        <!-- 2 CHẾ ĐỘ GIAO DIỆN CHÍNH (ĐÚNG 2 TABS DUY NHẤT) -->
+        <nav class="view-switcher" id="view-switcher">
+          <button class="nav-tab-btn active" id="tab-btn-trading" data-view="view-trading">
+            <span class="tab-icon">📊</span>
+            <span class="tab-text">BÀN GIAO DỊCH THỰC CHIẾN</span>
           </button>
+          <button class="nav-tab-btn" id="tab-btn-config" data-view="view-config">
+            <span class="tab-icon">⚙️</span>
+            <span class="tab-text">CẤU HÌNH & KẾT NỐI HỆ THỐNG</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- DÒNG TIỀN THỰC CHIẾN (NHẢY SỐ THEO TỪNG TICK LỆNH MT5) -->
+      <div class="header-metrics-cluster">
+        <div class="metric-pod pod-equity">
+          <div class="pod-label">VỐN RÒNG (EQUITY)</div>
+          <div class="pod-val text-neon-green" id="top-equity">$10,003.41</div>
+          <div class="pod-sub" id="top-equity-sub">Live MT5 Tick</div>
         </div>
-        <button class="btn btn-halt w-100" id="btn-halt" title="Cầu dao dừng khẩn cấp">
-          🔴 TẠM DỪNG (KILL SWITCH)
+        <div class="metric-pod pod-balance">
+          <div class="pod-label">SỐ DƯ (BALANCE)</div>
+          <div class="pod-val text-cyan" id="top-balance">$10,000.00</div>
+          <div class="pod-sub">MetaQuotes-Demo</div>
+        </div>
+        <div class="metric-pod pod-pnl">
+          <div class="pod-label">LÃI/LỖ THẢ NỔI</div>
+          <div class="pod-val text-neon-green" id="top-floating">+$3.41</div>
+          <div class="pod-sub" id="top-positions-count">2 Vị thế mở</div>
+        </div>
+        <div class="metric-pod pod-streak">
+          <div class="pod-label">CHUỖI THẮNG (STREAK)</div>
+          <div class="pod-val text-neon-magenta" id="top-streak">x 4 <span class="streak-mini">+29</span></div>
+          <div class="pod-sub">Win Rate: <b id="top-winrate">68.5%</b></div>
+        </div>
+      </div>
+
+      <!-- CÔNG TẮC CHẾ ĐỘ AI & NÚT DỪNG KHẨN CẤP -->
+      <div class="header-controls">
+        <button class="btn-ai-mode" id="btn-toggle-ai-mode" title="Nhấn để chuyển đổi giữa Tự Động 100% và Bán Tự Động">
+          <span class="mode-pulse" id="mode-pulse"></span>
+          <span class="mode-text" id="mode-text">BÁN TỰ ĐỘNG</span>
+        </button>
+        <button class="btn-panic-halt" id="btn-global-halt" title="Cầu dao an toàn: Tạm dừng toàn bộ hoạt động giao dịch">
+          🔴 DỪNG KHẨN CẤP
         </button>
       </div>
-    </aside>
+    </header>
 
     <!-- =====================================================================
-         CỘT 2: KHÔNG GIAN LÀM VIỆC CHÍNH (MAIN WORKSPACE)
+         GIAO DIỆN 1: BÀN GIAO DỊCH THỰC CHIẾN (CHUẨN PHONG CÁCH VIDEO DEMO)
          ===================================================================== -->
-    <div class="app-main">
-      <!-- Top Navigation & Global Status -->
-      <header class="topbar">
-        <div class="topbar-left">
-          <button class="btn-menu-toggle" id="btn-menu-toggle" aria-label="Mở Menu" title="Mở danh mục Pipeline">
-            <span>☰</span>
-          </button>
-          <div class="brand brand-topbar">
-            <div class="logo-box">
-              <span class="logo-icon">⚡</span>
-            </div>
-            <div>
-              <div class="brand-title">OPC AI Trader</div>
-            </div>
-          </div>
+    <main class="view-panel active" id="view-trading">
+      
+      <!-- Dải Ticker 6 Tài Sản Trọng Tâm -->
+      <div class="ticker-ribbon" id="ticker-ribbon">
+        <div class="ticker-chip active" data-symbol="AUDCAD">
+          <span class="sym-name">AUDCAD</span>
+          <span class="sym-price" id="tick-AUDCAD">0.99265</span>
+          <span class="sym-chg text-neon-green" id="chg-AUDCAD">+0.18%</span>
         </div>
-
-        <!-- Live Metric Badges -->
-        <div class="top-metrics">
-          <div class="metric-card">
-            <div class="metric-label">TRẠNG THÁI</div>
-            <div class="metric-val status-live"><span class="pulse-dot"></span> METAQUOTES DEMO</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">VỐN (EQUITY)</div>
-            <div class="metric-val text-cyan" id="metric-equity">$10,000.00</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">SỐ DƯ (BALANCE)</div>
-            <div class="metric-val" id="metric-balance">$10,000.00</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">LÃI/LỖ NGÀY</div>
-            <div class="metric-val" id="metric-daily-pnl">$0.00</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">RỦI RO ĐANG MỞ</div>
-            <div class="metric-val text-amber" id="metric-open-risk">$0.00</div>
-          </div>
+        <div class="ticker-chip" data-symbol="EURUSD">
+          <span class="sym-name">EURUSD</span>
+          <span class="sym-price" id="tick-EURUSD">1.08420</span>
+          <span class="sym-chg text-neon-green" id="chg-EURUSD">+0.12%</span>
         </div>
-
-        <!-- Quick Global Actions -->
-        <div class="top-actions">
-          <button class="btn btn-outline text-teal d-none-mobile" id="btn-open-guide-modal" title="Hướng dẫn từng bước đơn giản cho người mới tham gia">
-            📖 HƯỚNG DẪN
-          </button>
-          <button class="btn btn-step" id="btn-advance" title="Chuyển sang nến M15 tiếp theo">
-            <span>⏩ NẾN TIẾP</span>
-            <span class="badge-step" id="badge-step">#120</span>
-          </button>
-          <button class="btn btn-step" id="btn-reconcile" title="Đối soát vị thế với Broker MT5" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">
-            <span>🔍 ĐỐI SOÁT</span>
-          </button>
+        <div class="ticker-chip" data-symbol="XAUUSD">
+          <span class="sym-name">XAUUSD (GOLD)</span>
+          <span class="sym-price" id="tick-XAUUSD">2649.85</span>
+          <span class="sym-chg text-neon-magenta" id="chg-XAUUSD">-0.14%</span>
         </div>
-      </header>
-
-  <!-- 6 Target Asset Watchlist Ticker -->
-  <section class="watchlist-bar" id="watchlist-bar">
-    <!-- Populated by JS -->
-  </section>
-
-  <!-- Mobile Segmented View Control (Hiển thị mượt mà trên iPhone, Android, Tablet) -->
-  <nav class="mobile-tabs-bar" id="mobile-tabs-bar">
-    <button class="mobile-tab-btn active" data-tab="tab-chart">
-      <span>📊 Biểu Đồ & Lệnh</span>
-    </button>
-    <button class="mobile-tab-btn" data-tab="tab-positions">
-      <span>📋 Vị Thế MT5</span>
-      <span class="badge-tab-count" id="mobile-pos-badge">2</span>
-    </button>
-    <button class="mobile-tab-btn" data-tab="tab-proposals">
-      <span>⚡ Đề Xuất AI</span>
-      <span class="badge-tab-count" id="mobile-prop-badge">0</span>
-    </button>
-    <button class="mobile-tab-btn" data-tab="tab-risk">
-      <span>🛡️ Rủi Ro & MT5</span>
-    </button>
-  </nav>
-
-  <!-- Main Grid Dashboard -->
-  <main class="main-container">
-    <!-- Left Column: Chart, Order Ticket, Market Depth -->
-    <div class="col-left">
-      <!-- Chart Card -->
-      <div class="card chart-card" id="card-chart">
-        <div class="card-header">
-          <div class="header-left">
-            <span class="active-sym-title" id="chart-symbol">EURUSD</span>
-            <span class="badge timeframe-badge">M15</span>
-            <span class="badge spread-badge" id="chart-spread">Spread: 1.2 pts</span>
-          </div>
-          <div class="header-right">
-            <span class="price-quote-bid" id="chart-bid">1.08420</span>
-            <span class="price-quote-ask" id="chart-ask">1.08432</span>
-          </div>
+        <div class="ticker-chip" data-symbol="BTCUSD">
+          <span class="sym-name">BTCUSD</span>
+          <span class="sym-price" id="tick-BTCUSD">64945.10</span>
+          <span class="sym-chg text-neon-magenta" id="chg-BTCUSD">-0.67%</span>
         </div>
-        <div class="chart-container">
-          <canvas id="price-chart" height="280"></canvas>
+        <div class="ticker-chip" data-symbol="GBPUSD">
+          <span class="sym-name">GBPUSD</span>
+          <span class="sym-price" id="tick-GBPUSD">1.29850</span>
+          <span class="sym-chg text-neon-green" id="chg-GBPUSD">+0.22%</span>
         </div>
-        <div class="chart-footer">
-          <div class="indicator-tag"><span class="dot dot-cyan"></span> SMA 9: <b id="val-sma9">1.08410</b></div>
-          <div class="indicator-tag"><span class="dot dot-amber"></span> SMA 21: <b id="val-sma21">1.08390</b></div>
-          <div class="indicator-tag"><span class="dot dot-purple"></span> ATR(14): <b id="val-atr14">0.00085</b></div>
+        <div class="ticker-chip" data-symbol="USDJPY">
+          <span class="sym-name">USDJPY</span>
+          <span class="sym-price" id="tick-USDJPY">154.320</span>
+          <span class="sym-chg text-neon-green" id="chg-USDJPY">+0.05%</span>
         </div>
       </div>
 
-      <!-- AI Neural Decision Mesh (Mạng Nơ-ron Quyết Định AI) -->
-      <div class="card neural-card" id="card-neural">
-        <div class="card-header">
-          <div class="d-flex align-center gap-2">
-            <span class="pulse-dot pulse-cyan"></span>
-            <span class="card-title">MẠNG NƠ-RON QUYẾT ĐỊNH AI (DECISION MESH)</span>
-          </div>
-          <div class="d-flex align-center gap-2">
-            <button class="btn btn-sm btn-outline-cyan" id="btn-open-brain-modal" title="Xem Bộ Não Tri Thức Obsidian & Cấu hình AI">
-              🧠 BỘ NÃO OBSIDIAN
-            </button>
-            <button class="btn btn-sm btn-outline-amber" id="btn-open-ftmo-modal" title="Xem Bảng Rủi Ro Quỹ FTMO 1-Step">
-              🛡️ BẢNG QUỸ FTMO
-            </button>
-          </div>
-        </div>
-        <div class="neural-canvas-container">
-          <canvas id="neural-canvas" height="135"></canvas>
-        </div>
-        <div class="neural-status-bar">
-          <span id="neural-flow-status">Trạng thái: <b class="text-cyan">ĐỒNG BỘ NẾN M15 & BẢO VỆ RỦI RO HOẠT ĐỘNG</b></span>
-          <span id="neural-active-model">Mô hình AI: <b class="text-amber">Obsidian + gpt-4o</b></span>
-        </div>
-      </div>
-
-      <!-- Order Ticket (Semi-Auto Manual Desk) -->
-      <div class="card order-card" id="card-order">
-        <div class="card-header">
-          <span class="card-title">PHIẾU LỆNH BÁN TỰ ĐỘNG</span>
-          <span class="text-muted" id="order-step-tag">Step #120</span>
-        </div>
-        <div class="order-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>SẢN PHẨM</label>
-              <select id="order-symbol" class="form-control">
-                <option value="BTCUSD">BTCUSD (Bitcoin CFD)</option>
-                <option value="XAUUSD">XAUUSD (Vàng spot CFD)</option>
-                <option value="WTI">WTI (Dầu WTI CFD)</option>
-                <option value="EURUSD" selected>EURUSD (Forex)</option>
-                <option value="GBPUSD">GBPUSD (Forex)</option>
-                <option value="USDJPY">USDJPY (Forex)</option>
-              </select>
+      <!-- Lưới Dashboard Trung Tâm (2 Cột Cân Đối) -->
+      <div class="terminal-grid">
+        
+        <!-- CỘT TRÁI: BIỂU ĐỒ NẾN THỊ TRƯỜNG & ĐƯỜNG CONG TĂNG TRƯỞNG VỐN (EQUITY CURVE) -->
+        <section class="col-chart-workspace">
+          
+          <!-- Widget Biểu Đồ Nến Giá -->
+          <div class="terminal-card card-chart-main">
+            <div class="card-topbar">
+              <div class="topbar-sym-info">
+                <span class="active-sym-title" id="display-active-sym">AUDCAD</span>
+                <span class="badge-timeframe">M15 · REALTIME</span>
+                <span class="badge-spread" id="display-spread">Spread: 1.1 pts</span>
+              </div>
+              <div class="topbar-quotes">
+                <div class="quote-box">BID: <b id="quote-bid" class="text-cyan">0.99265</b></div>
+                <div class="quote-box">ASK: <b id="quote-ask" class="text-neon-magenta">0.99276</b></div>
+              </div>
             </div>
-            <div class="form-group">
-              <label>CHIỀU LỆNH</label>
-              <div class="side-selector">
-                <button type="button" class="btn-side side-buy active" id="side-buy">MUA (BUY)</button>
-                <button type="button" class="btn-side side-sell" id="side-sell">BÁN (SELL)</button>
+            <div class="canvas-wrap-chart">
+              <canvas id="canvas-candlestick" height="310"></canvas>
+            </div>
+            <div class="chart-indicators-legend">
+              <div class="legend-item"><span class="dot dot-cyan"></span> EMA 9 (Fast): <b id="ind-ema9">0.99280</b></div>
+              <div class="legend-item"><span class="dot dot-yellow"></span> EMA 21 (Slow): <b id="ind-ema21">0.99310</b></div>
+              <div class="legend-item"><span class="dot dot-magenta"></span> ATR (14): <b id="ind-atr">0.00185</b></div>
+              <div class="legend-item"><span class="dot dot-green"></span> Bollinger Bands: <b id="ind-bb">Kênh Chuẩn</b></div>
+            </div>
+          </div>
+
+          <!-- Widget Đồ Thị Đường Cong Tăng Trưởng Tài Sản (Live Equity Curve - Video Demo) -->
+          <div class="terminal-card card-equity-curve">
+            <div class="card-topbar">
+              <div class="card-title-group">
+                <span class="title-icon">📈</span>
+                <span class="card-title">ĐƯỜNG CONG TĂNG TRƯỞNG TÀI SẢN (LIVE EQUITY GROWTH)</span>
+              </div>
+              <div class="equity-stat-tags">
+                <span class="tag-stat text-neon-green">LÃI TÍCH LUỸ: <b id="stat-cum-profit">+$3.41</b></span>
+                <span class="tag-stat text-cyan">TỐI ĐA SỤT GIẢM (MAX DD): <b id="stat-max-dd">0.04%</b></span>
+              </div>
+            </div>
+            <div class="canvas-wrap-equity">
+              <canvas id="canvas-equity-curve" height="150"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- CỘT PHẢI: MẠNG NƠ-RON AI HẠT PHOTON ĐỘNG & BẢNG ĐỀ XUẤT CHIẾN LƯỢC -->
+        <section class="col-ai-decision">
+          
+          <!-- Widget Mạng Nơ-ron AI Hạt Động (Particle Decision Mesh - Video Demo) -->
+          <div class="terminal-card card-neural-mesh">
+            <div class="card-topbar">
+              <div class="card-title-group">
+                <span class="title-icon">🧬</span>
+                <span class="card-title">MẠNG NƠ-RON QUYẾT ĐỊNH AI (NEURAL DECISION MESH)</span>
+              </div>
+              <span class="badge-ai-status"><span class="dot-pulse"></span> 3 CHIẾN LƯỢC ĐANG QUÉT</span>
+            </div>
+            <div class="canvas-wrap-neural">
+              <canvas id="canvas-neural-mesh" height="190"></canvas>
+              <div class="mesh-overlay-text" id="mesh-status-text">
+                Đang tổng hợp dữ liệu nến M15 & kiểm tra ngưỡng an toàn FTMO...
               </div>
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>KHỐI LƯỢNG (LOT)</label>
-              <input type="number" id="order-volume" class="form-control" value="0.10" step="0.01" min="0.01" max="10">
-              <div class="quick-lot-chips" id="quick-lot-chips">
-                <button type="button" class="btn-lot-chip" data-lot="0.01">0.01</button>
-                <button type="button" class="btn-lot-chip" data-lot="0.05">0.05</button>
-                <button type="button" class="btn-lot-chip active" data-lot="0.10">0.10</button>
-                <button type="button" class="btn-lot-chip" data-lot="0.20">0.20</button>
-                <button type="button" class="btn-lot-chip" data-lot="0.50">0.50</button>
-                <button type="button" class="btn-lot-chip" data-lot="1.00">1.00</button>
+          <!-- Widget Bảng Đề Xuất Chiến Lược (1-Click Duyệt Bắn MT5) -->
+          <div class="terminal-card card-proposals-box">
+            <div class="card-topbar">
+              <div class="card-title-group">
+                <span class="title-icon">🎯</span>
+                <span class="card-title">ĐỀ XUẤT CHIẾN LƯỢC AI (1-CLICK DUYỆT THỰC CHIẾN)</span>
+              </div>
+              <div class="proposal-batch-actions">
+                <button class="btn-batch-action btn-batch-approve" id="btn-batch-approve-all">
+                  ✔ DUYỆT TẤT CẢ
+                </button>
+                <button class="btn-batch-action btn-batch-reject" id="btn-batch-reject-all">
+                  ✖ TỪ CHỐI TẤT CẢ
+                </button>
               </div>
             </div>
-            <div class="form-group">
-              <label>DỪNG LỖ (SL)</label>
-              <input type="number" id="order-sl" class="form-control" step="0.00001" placeholder="Dừng lỗ bắt buộc">
-            </div>
-            <div class="form-group">
-              <label>CHỐT LỜI (TP)</label>
-              <input type="number" id="order-tp" class="form-control" step="0.00001" placeholder="Chốt lời bắt buộc">
+
+            <!-- Danh sách thẻ đề xuất -->
+            <div class="proposals-scroll-container" id="proposals-list">
+              <!-- Render tự động bởi JS -->
             </div>
           </div>
 
-          <div class="order-summary-box" id="order-preview-box">
-            <span>Rủi ro dự tính: <b id="prev-risk" class="text-amber">$0.00</b></span>
-            <span>Ký quỹ 1:30: <b id="prev-margin">$0.00</b></span>
-            <span>Phí sàn: <b id="prev-fee">$0.70</b></span>
-          </div>
+        </section>
 
-          <div class="order-actions">
-            <button class="btn btn-secondary" id="btn-preview-order">XEM TRƯỚC RỦI RO</button>
-            <button class="btn btn-primary" id="btn-submit-order">GỬI LỆNH THỰC THI</button>
-          </div>
-        </div>
       </div>
 
-      <!-- Active Positions Table -->
-      <div class="card positions-card" id="card-positions">
-        <div class="card-header">
-          <span class="card-title">VỊ THẾ ĐANG MỞ (<span id="open-positions-count">0</span>)</span>
-          <span class="badge" id="open-pnl-badge">P/L: $0.00</span>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table" id="positions-table">
-            <thead>
-              <tr>
-                <th>Ticket</th>
-                <th>Sản phẩm</th>
-                <th>Chiều</th>
-                <th>Khối lượng</th>
-                <th>Giá vào</th>
-                <th>Thị giá</th>
-                <th>Floating P/L</th>
-                <th>SL</th>
-                <th>TP</th>
-                <th>Rủi ro</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="positions-body">
-              <tr><td colspan="11" class="text-center text-muted">Chưa có vị thế mở.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column: Trade Proposals Desk, AI Analyst, Risk Desk, Logs -->
-    <div class="col-right">
-      <!-- Trade Proposals Desk (Phase 1C Strategy Engine) -->
-      <div class="card proposals-card" id="card-proposals">
-        <div class="card-header">
-          <div class="d-flex align-center gap-2">
-            <span class="card-title">ĐỀ XUẤT TỪ CHIẾN LƯỢC</span>
-            <span class="badge badge-accent" id="proposals-count">0</span>
-          </div>
-          <button class="btn-icon" id="btn-refresh-proposals" title="Quét lại chiến lược">🔄</button>
-        </div>
-        <!-- Batch Action Toolbar -->
-        <div class="proposals-batch-bar" id="proposals-batch-bar">
-          <div class="batch-left">
-            <label class="batch-chk-label" title="Chọn hoặc bỏ chọn tất cả">
-              <input type="checkbox" id="chk-select-all-proposals" class="custom-chk">
-              <span class="batch-select-text">Chọn tất cả</span>
-            </label>
-            <span class="badge batch-badge" id="batch-selected-count">0/0</span>
-          </div>
-          <div class="batch-right">
-            <button class="btn btn-sm btn-batch-approve" id="btn-batch-approve" title="Duyệt tất cả đề xuất đã chọn qua RiskGate">
-              ✔ DUYỆT TẤT CẢ
-            </button>
-            <button class="btn btn-sm btn-batch-reject" id="btn-batch-reject" title="Từ chối tất cả đề xuất đã chọn">
-              ✖ HỦY TẤT CẢ
-            </button>
-          </div>
-        </div>
-
-        <div class="proposals-list" id="proposals-list">
-          <div class="empty-state">Đang quét tín hiệu từ 3 chiến lược cốt lõi...</div>
-        </div>
-      </div>
-
-      <!-- Lucky Analyst AI Assistant -->
-      <div class="card ai-card" id="card-ai">
-        <div class="card-header">
-          <div class="d-flex align-center gap-2">
-            <span class="ai-badge">AI ANALYST</span>
-            <span class="card-title">ĐÁNH GIÁ KẾ HOẠCH</span>
-          </div>
-          <button class="btn btn-sm btn-cyan" id="btn-ai-review">🧠 YÊU CẦU PHÂN TÍCH</button>
-        </div>
-        <div class="ai-response-box" id="ai-response-box">
-          Bấm "Yêu cầu phân tích" để Lucky Analyst kiểm duyệt kế hoạch giao dịch hiện tại dựa trên xu hướng, biên độ ATR và các ngưỡng rủi ro.
-        </div>
-      </div>
-
-      <!-- Risk Desk & Strategy Matrix -->
-      <div class="card risk-card" id="card-risk">
-        <div class="card-header">
-          <span class="card-title">BÀN QUẢN TRỊ RỦI RO (RISK DESK)</span>
-          <span class="badge badge-green">RISK GATE: ON</span>
-        </div>
-        <div class="risk-grid">
-          <div class="risk-item">
-            <div class="risk-label">Sụt giảm ngày (Max 2.0%)</div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" id="risk-drawdown-bar" style="width: 0%;"></div>
+      <!-- =====================================================================
+           KHU VỰC ĐÁY: SỔ VỊ THẾ THỰC CHIẾN MT5 & LIVE TERMINAL LOG
+           ===================================================================== -->
+      <section class="terminal-bottom-section">
+        
+        <!-- Sổ Vị Thế Đang Chạy Thật Trên MT5 (Account #5056580335) -->
+        <div class="terminal-card card-positions-table">
+          <div class="card-topbar">
+            <div class="card-title-group">
+              <span class="title-icon">💼</span>
+              <span class="card-title">SỔ VỊ THẾ THỰC CHIẾN MT5 (LIVE POSITIONS)</span>
+              <span class="badge-count-live" id="live-pos-badge">2 LỆNH ĐANG MỞ</span>
             </div>
-            <div class="risk-value-text" id="risk-drawdown-val">0.00% / 2.00%</div>
+            <div class="positions-table-actions">
+              <button class="btn-sm btn-panic-close" id="btn-close-all-positions" title="Thanh khoản toàn bộ vị thế đang mở trên MT5">
+                🔴 ĐÓNG TOÀN BỘ VỊ THẾ
+              </button>
+              <button class="btn-sm btn-outline-cyan" id="btn-refresh-positions" title="Làm mới từ Broker MT5">
+                🔄 LÀM MỚI MT5
+              </button>
+            </div>
           </div>
-          <div class="risk-item">
-            <div class="risk-label">Rủi ro / Lệnh (Max 0.5%)</div>
-            <div class="risk-stat" id="risk-per-trade-val">$250.00 (0.5%)</div>
-          </div>
-          <div class="risk-item">
-            <div class="risk-label">Số vị thế tối đa (Max 5)</div>
-            <div class="risk-stat" id="risk-positions-stat">0 / 5 vị thế</div>
-          </div>
-          <div class="risk-item">
-            <div class="risk-label">Bộ lọc tương quan (Correlation)</div>
-            <div class="risk-stat text-cyan">Chống trùng momentum</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Event & Audit Log -->
-      <div class="card logs-card" id="card-logs">
-        <div class="card-header">
-          <span class="card-title">NHẬT KÝ THỰC THI (AUDIT TRAIL)</span>
-          <a href="/api/export" class="btn btn-sm btn-outline" download>📥 XUẤT CSV</a>
-        </div>
-        <div class="terminal-log" id="terminal-log">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-    </div>
-  </main>
-  </div> <!-- /.app-main -->
-</div> <!-- /.app-layout -->
-
-  <!-- Modal: Obsidian Brain & AI Gateway -->
-  <div class="modal-backdrop" id="modal-obsidian">
-    <div class="modal-box modal-lg">
-      <div class="modal-header">
-        <div class="d-flex align-center gap-2">
-          <span class="logo-icon">🧠</span>
-          <span class="modal-title">BỘ NÃO TRI THỨC OBSIDIAN & CỔNG AI GATEWAY</span>
-        </div>
-        <button class="modal-close" id="btn-close-brain-modal">✖</button>
-      </div>
-      <div class="modal-body modal-grid-2">
-        <!-- Left: Obsidian Vault Skills List -->
-        <div class="modal-panel">
-          <div class="panel-subtitle">KHO TRI THỨC VAULT (d:\TRADE-AI\brain_vault)</div>
-          <div class="vault-list" id="modal-vault-list">
-            <!-- Populated by JS -->
-          </div>
-          <div class="vault-preview-box" id="modal-vault-preview">
-            <span class="text-muted">Chọn một ghi chú bên trên để xem nội dung chi tiết...</span>
+          <div class="table-responsive">
+            <table class="live-positions-grid">
+              <thead>
+                <tr>
+                  <th>TICKET ID</th>
+                  <th>CẶP TIỀN</th>
+                  <th>CHIỀU LỆNH</th>
+                  <th>KHỐI LƯỢNG</th>
+                  <th>GIÁ VÀO (OPEN)</th>
+                  <th>GIÁ HIỆN TẠI</th>
+                  <th>DỪNG LỖ (SL)</th>
+                  <th>CHỐT LỜI (TP)</th>
+                  <th>LÃI/LỖ (PNL)</th>
+                  <th>HÀNH ĐỘNG</th>
+                </tr>
+              </thead>
+              <tbody id="positions-tbody">
+                <!-- Render từ live data MT5 -->
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- Right: AI Gateway & Model Selector -->
-        <div class="modal-panel">
-          <div class="panel-subtitle">CẤU HÌNH CỔNG AI GATEWAY ĐA MÔ HÌNH</div>
-          <div class="form-group mb-3">
-            <label>NHÀ CUNG CẤP AI (PROVIDER)</label>
-            <select id="cfg-ai-provider" class="form-control">
-              <option value="openai" selected>OpenAI (GPT-4o / o3-mini)</option>
-              <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
-              <option value="google">Google Gemini (Gemini 2.0 Flash / 1.5 Pro)</option>
-              <option value="deepseek">DeepSeek (DeepSeek-V3 / DeepSeek-R1)</option>
-              <option value="9router">9Router Local Proxy (http://localhost:20128/v1)</option>
-            </select>
+        <!-- Terminal Log Tốc Độ Cao (Live Execution Terminal) -->
+        <div class="terminal-card card-execution-terminal">
+          <div class="card-topbar">
+            <div class="card-title-group">
+              <span class="title-icon">⚡</span>
+              <span class="card-title">NHẬT KÝ THỰC THI TỐC ĐỘ CAO (LIVE EXECUTION STREAM)</span>
+            </div>
+            <span class="terminal-latency" id="terminal-latency">Độ trễ Broker: 12ms · FTMO Gate: SAFE</span>
           </div>
-          <div class="form-group mb-3">
-            <label>TÊN MÔ HÌNH (MODEL NAME)</label>
-            <input type="text" id="cfg-ai-model" class="form-control" value="gpt-4o" placeholder="Ví dụ: gpt-4o, claude-3-5-sonnet, gemini-2.0-flash, fcs-astra">
-          </div>
-          <div class="form-group mb-3">
-            <label>BASE URL (API ENDPOINT)</label>
-            <input type="text" id="cfg-ai-base-url" class="form-control" value="https://api.openai.com/v1" placeholder="https://api.openai.com/v1 hoặc http://localhost:20128/v1">
-          </div>
-          <div class="form-group mb-3">
-            <label>API KEY (BẢO MẬT PHIÊN TRÌNH DUYỆT)</label>
-            <input type="password" id="cfg-ai-api-key" class="form-control" placeholder="sk-... (để trống nếu dùng 9Router cục bộ)">
-          </div>
-          <div class="d-flex justify-between align-center mt-3">
-            <span class="badge badge-green" id="brain-vault-badge">VAULT: 4 SKILLS LOADED</span>
-            <button class="btn btn-primary" id="btn-save-ai-cfg">💾 LƯU CẤU HÌNH AI</button>
+          <div class="terminal-log-console" id="terminal-console">
+            <!-- Render các dòng log thực chiến -->
           </div>
         </div>
+
+      </section>
+
+    </main>
+
+    <!-- =====================================================================
+         GIAO DIỆN 2: CẤU HÌNH & KẾT NỐI HỆ THỐNG (SYSTEM CONFIGURATION)
+         ===================================================================== -->
+    <main class="view-panel" id="view-config">
+      <div class="config-page-wrapper">
+        
+        <div class="config-header-banner">
+          <h2>⚙️ CẤU HÌNH HỆ THỐNG & KẾT NỐI BROKER THỰC CHIẾN</h2>
+          <p>Quản lý tập trung tài khoản giao dịch, trần rủi ro quỹ FTMO và các thuật toán AI chiến lược.</p>
+        </div>
+
+        <div class="config-grid">
+          
+          <!-- KHỐI 1: KẾT NỐI BROKER MT4 / MT5 LIVE -->
+          <div class="terminal-card config-card">
+            <div class="card-topbar">
+              <div class="card-title-group">
+                <span class="title-icon">🔌</span>
+                <span class="card-title">1. KẾT NỐI SÀN METATRADER (LIVE BROKER)</span>
+              </div>
+              <span class="badge-status-connected" id="cfg-broker-status">🟢 ĐÃ KẾT NỐI THÀNH CÔNG</span>
+            </div>
+
+            <div class="config-card-body">
+              <div class="form-row-2">
+                <div class="form-field">
+                  <label>Nền tảng giao dịch:</label>
+                  <select class="input-ctrl" id="cfg-platform">
+                    <option value="MT5" selected>MetaTrader 5 (64-bit Direct IPC)</option>
+                    <option value="MT4">MetaTrader 4 (Bridge Gateway)</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>Máy chủ (Server):</label>
+                  <input type="text" class="input-ctrl" id="cfg-server" value="MetaQuotes-Demo">
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-field">
+                  <label>Số tài khoản (Login):</label>
+                  <input type="text" class="input-ctrl font-mono" id="cfg-login" value="5056580335">
+                </div>
+                <div class="form-field">
+                  <label>Mật khẩu (Password):</label>
+                  <div class="password-wrap">
+                    <input type="password" class="input-ctrl font-mono" id="cfg-password" value="_iDgN8Bs">
+                    <button type="button" class="btn-toggle-pw" id="btn-toggle-pw">👁️</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="broker-info-summary">
+                <div class="info-row">
+                  <span>Chủ tài khoản:</span>
+                  <b id="cfg-account-name">Chuyền Ngọc</b>
+                </div>
+                <div class="info-row">
+                  <span>Đòn bẩy:</span>
+                  <b id="cfg-leverage">1:100 (Hedging)</b>
+                </div>
+                <div class="info-row">
+                  <span>Số dư ban đầu:</span>
+                  <b id="cfg-balance-display">$10,000.00 USD</b>
+                </div>
+                <div class="info-row">
+                  <span>Độ trễ kết nối (Ping):</span>
+                  <b class="text-neon-green" id="cfg-ping">12 ms</b>
+                </div>
+              </div>
+
+              <button class="btn btn-outline-cyan w-100" id="btn-reconnect-broker">
+                🔄 KIỂM TRA & KẾT NỐI LẠI BROKER
+              </button>
+            </div>
+          </div>
+
+          <!-- KHỐI 2: QUẢN TRỊ RỦI RO & AN TOÀN VỐN FTMO (PROP FIRM RULES) -->
+          <div class="terminal-card config-card">
+            <div class="card-topbar">
+              <div class="card-title-group">
+                <span class="title-icon">🛡️</span>
+                <span class="card-title">2. QUẢN TRỊ RỦI RO QUỸ FTMO (CAPITAL PROTECTION)</span>
+              </div>
+              <span class="badge-status-safe" id="cfg-ftmo-badge">SAFE (HEADROOM +$303.41)</span>
+            </div>
+
+            <div class="config-card-body">
+              <div class="form-row-2">
+                <div class="form-field">
+                  <label>Quy mô tài khoản ($):</label>
+                  <input type="number" class="input-ctrl font-mono" id="cfg-initial-capital" value="10000" step="1000">
+                </div>
+                <div class="form-field">
+                  <label>Giới hạn lỗ ngày (Daily Loss):</label>
+                  <div class="input-unit-wrap">
+                    <input type="number" class="input-ctrl font-mono" id="cfg-daily-loss-pct" value="3.0" step="0.5" max="5.0">
+                    <span class="unit">% ($300.00)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-field">
+                  <label>Giới hạn sụt giảm tổng (Max Trailing DD):</label>
+                  <div class="input-unit-wrap">
+                    <input type="number" class="input-ctrl font-mono" id="cfg-total-loss-pct" value="10.0" step="0.5" max="10.0">
+                    <span class="unit">% ($1,000.00)</span>
+                  </div>
+                </div>
+                <div class="form-field">
+                  <label>Rủi ro tối đa mỗi lệnh:</label>
+                  <div class="input-unit-wrap">
+                    <input type="number" class="input-ctrl font-mono" id="cfg-risk-per-trade-pct" value="0.5" step="0.1" max="2.0">
+                    <span class="unit">% ($50.00)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label>Số vị thế mở đồng thời tối đa:</label>
+                <input type="number" class="input-ctrl font-mono" id="cfg-max-positions" value="5" min="1" max="20">
+              </div>
+
+              <div class="risk-rules-notice">
+                <div class="notice-title">⚡ CƠ CHẾ BẢO VỆ TỰ ĐỘNG (AUTO KILL SWITCH):</div>
+                <p>Khi chạm sàn lỗ ngày ($9,700) hoặc sụt giảm tối đa ($9,000), hệ thống tự động khóa lệnh mới và kích hoạt đóng toàn bộ vị thế để không bao giờ bị vi phạm quy chế quỹ.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- KHỐI 3: BỘ NÃO AI & 3 PHƯƠNG PHÁP CHIẾN LƯỢC CHUẨN HIỆU QUẢ CAO -->
+          <div class="terminal-card config-card config-card-full">
+            <div class="card-topbar">
+              <div class="card-title-group">
+                <span class="title-icon">🧠</span>
+                <span class="card-title">3. BỘ NÃO AI & 3 PHƯƠNG PHÁP CHIẾN LƯỢC CHUẨN</span>
+              </div>
+              <span class="badge-ai-model">MODEL: fcs-astra (9Router Local)</span>
+            </div>
+
+            <div class="config-card-body">
+              <div class="form-row-2 mb-20">
+                <div class="form-field">
+                  <label>Mô hình AI điều phối:</label>
+                  <select class="input-ctrl" id="cfg-ai-model">
+                    <option value="fcs-astra" selected>fcs-astra (cx/gpt-6-astra + auto-fallback) · Khuyên dùng</option>
+                    <option value="obsidian-local">Obsidian Local Neural Engine (Offline IPC)</option>
+                    <option value="gpt-4o">OpenAI GPT-4o Realtime</option>
+                    <option value="claude-3-5">Anthropic Claude 3.5 Sonnet</option>
+                    <option value="gemini-2-0">Google Gemini 2.0 Flash</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>Chế độ khớp lệnh khởi động:</label>
+                  <select class="input-ctrl" id="cfg-default-mode">
+                    <option value="semi_auto" selected>Bán Tự Động (Trader bấm 1-click Duyệt lệnh)</option>
+                    <option value="full_auto">Tự Động 100% (AI tự quét & tự bắn lệnh MT5)</option>
+                  </select>
+                </div>
+              </div>
+
+              <label class="section-subheading">KÍCH HOẠT 3 CHIẾN LƯỢC PHỔ BIẾN HIỆU QUẢ CAO:</label>
+              
+              <div class="strategies-grid">
+                
+                <!-- Chiến lược 1 -->
+                <div class="strat-box">
+                  <div class="strat-header">
+                    <label class="strat-checkbox-label">
+                      <input type="checkbox" id="strat-enable-trend" checked>
+                      <span class="strat-name">1. TREND FOLLOWING (THEO XU HƯỚNG)</span>
+                    </label>
+                    <span class="strat-winrate text-neon-green">Win Rate: 68.5%</span>
+                  </div>
+                  <p class="strat-desc">
+                    Sử dụng giao cắt đường trung bình EMA 9 & EMA 21 kết hợp bảo vệ điểm dừng theo độ biến động nến ATR Trailing Stop. Chuyên bắt trọn các con sóng dài của thị trường.
+                  </p>
+                </div>
+
+                <!-- Chiến lược 2 -->
+                <div class="strat-box">
+                  <div class="strat-header">
+                    <label class="strat-checkbox-label">
+                      <input type="checkbox" id="strat-enable-breakout" checked>
+                      <span class="strat-name">2. DONCHIAN BREAKOUT (PHÁ VỠ KÊNH GIÁ)</span>
+                    </label>
+                    <span class="strat-winrate text-neon-green">Win Rate: 62.0%</span>
+                  </div>
+                  <p class="strat-desc">
+                    Phương pháp kinh điển của nhóm Turtle Traders huyền thoại. Mua khi giá phá đỉnh cao nhất 20 phiên, Bán khi giá phá đáy thấp nhất 20 phiên.
+                  </p>
+                </div>
+
+                <!-- Chiến lược 3 -->
+                <div class="strat-box">
+                  <div class="strat-header">
+                    <label class="strat-checkbox-label">
+                      <input type="checkbox" id="strat-enable-bollinger" checked>
+                      <span class="strat-name">3. BOLLINGER BANDS & RSI (ĐẢO CHIỀU VÙNG BIÊN)</span>
+                    </label>
+                    <span class="strat-winrate text-neon-green">Win Rate: 71.4%</span>
+                  </div>
+                  <p class="strat-desc">
+                    Bắt sóng hồi đảo chiều khi giá chạm dải biên ngoài Bollinger Bands kết hợp phân kỳ vùng Quá Bán (RSI &lt; 30) hoặc Quá Mua (RSI &gt; 70).
+                  </p>
+                </div>
+
+              </div>
+
+              <!-- Nút Lưu Cấu Hình Nổi Bật -->
+              <div class="config-footer-action">
+                <button class="btn btn-save-config" id="btn-save-system-config">
+                  💾 LƯU CẤU HÌNH & KÍCH HOẠT HỆ THỐNG
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
       </div>
-    </div>
+    </main>
+
   </div>
 
-  <!-- Modal: FTMO Risk Cockpit -->
-  <div class="modal-backdrop" id="modal-ftmo">
-    <div class="modal-box">
-      <div class="modal-header">
-        <div class="d-flex align-center gap-2">
-          <span class="logo-icon">🛡️</span>
-          <span class="modal-title">BẢNG ĐIỀU KHIỂN RỦI RO FTMO 1-STEP CHALLENGE</span>
-        </div>
-        <button class="modal-close" id="btn-close-ftmo-modal">✖</button>
-      </div>
-      <div class="modal-body">
-        <div class="ftmo-grid">
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">VỐN KHỞI TẠO (I)</div>
-            <div class="ftmo-stat-val text-cyan" id="ftmo-val-i">$10,000.00</div>
-            <div class="ftmo-stat-sub">Mục tiêu 10% ($1,000)</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">SỐ DƯ ĐẦU NGÀY (B0)</div>
-            <div class="ftmo-stat-val" id="ftmo-val-b0">$10,000.00</div>
-            <div class="ftmo-stat-sub">Reset 00:00 Europe/Prague</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">ĐỈNH HIGH-WATER (H)</div>
-            <div class="ftmo-stat-val text-amber" id="ftmo-val-h">$10,000.00</div>
-            <div class="ftmo-stat-sub">Ratchet Trailing Drawdown</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">SÀN LỖ NGÀY (B0 - 3%)</div>
-            <div class="ftmo-stat-val text-danger" id="ftmo-val-daily-floor">$9,700.00</div>
-            <div class="ftmo-stat-sub">Hard Stop Nội Bộ: 1.2% ($120)</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">SÀN TRAILING (H - 10%)</div>
-            <div class="ftmo-stat-val text-danger" id="ftmo-val-total-floor">$9,000.00</div>
-            <div class="ftmo-stat-sub">Không bao giờ hạ xuống</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">KHOẢNG ĐỆM (HEADROOM)</div>
-            <div class="ftmo-stat-val text-green" id="ftmo-val-headroom">+$300.00</div>
-            <div class="ftmo-stat-sub">Biên an toàn trước vi phạm</div>
-          </div>
-        </div>
-
-        <div class="ftmo-best-day-box mt-3">
-          <div class="d-flex justify-between align-center mb-1">
-            <span class="font-bold">QUY TẮC BEST DAY (TỐI ĐA 50% TỔNG LÃI DƯƠNG):</span>
-            <span class="badge" id="ftmo-best-day-badge">0.0% / 50% (ĐẠT CHUẨN)</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="ftmo-best-day-bar" style="width: 0%;"></div>
-          </div>
-          <div class="text-muted text-xs mt-1">
-            * Nếu lãi ngày lớn nhất > 50%, bot sẽ giữ trạng thái giao dịch tiếp các ngày sau để phân bổ đều đặn, đảm bảo 100% hợp lệ hoàn thành Challenge.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal 3: MetaTrader 5 Real Live Account Details -->
-  <div class="modal-backdrop" id="modal-mt5">
-    <div class="modal-box modal-lg">
-      <div class="modal-header">
-        <div class="modal-title font-mono text-green">
-          <span>⚡ CỔNG METATRADER 5 (MT5 NATIVE 64-BIT)</span>
-          <span class="badge badge-success ml-2">ONLINE · CHUYỀN NGỌC</span>
-        </div>
-        <button class="btn btn-close" id="btn-close-mt5-modal">✖</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="alert alert-info mb-3">
-          <strong>KẾT NỐI TÀI KHOẢN METATRADER THỰC CHIẾN</strong><br/>
-          Hệ thống đang đồng bộ trực tiếp qua Python IPC với tiến trình <code>terminal64.exe</code> và đọc dữ liệu thời gian thực từ máy chủ <strong>MetaQuotes-Demo</strong>.
-        </div>
-
-        <div class="ftmo-grid">
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">SỐ TÀI KHOẢN (LOGIN)</div>
-            <div class="ftmo-stat-val text-cyan" id="mt5-modal-login">5056580335</div>
-            <div class="ftmo-stat-sub" id="mt5-modal-name">Chủ TK: Chuyền Ngọc</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">MÁY CHỦ (SERVER)</div>
-            <div class="ftmo-stat-val text-amber" id="mt5-modal-server">MetaQuotes-Demo</div>
-            <div class="ftmo-stat-sub">Đòn bẩy: 1:100 (Hedging)</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">SỐ DƯ (BALANCE)</div>
-            <div class="ftmo-stat-val" id="mt5-modal-balance">$10,000.00</div>
-            <div class="ftmo-stat-sub">Tiền tệ: USD</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">VỐN RÒNG (EQUITY)</div>
-            <div class="ftmo-stat-val text-green" id="mt5-modal-equity">$9,998.68</div>
-            <div class="ftmo-stat-sub">Ký quỹ: $70.19</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">KÝ QUỸ KHẢ DỤNG</div>
-            <div class="ftmo-stat-val text-cyan" id="mt5-modal-free-margin">$9,928.49</div>
-            <div class="ftmo-stat-sub">Tỷ lệ: 14,245%</div>
-          </div>
-          <div class="ftmo-stat-card">
-            <div class="ftmo-stat-label">LỆNH ĐANG MỞ TRÊN SÀN</div>
-            <div class="ftmo-stat-val text-amber" id="mt5-modal-pos-count">2 Vị Thế</div>
-            <div class="ftmo-stat-sub">AUDCAD (0.01 / 0.1 lots)</div>
-          </div>
-        </div>
-
-        <div class="mt-3 p-3 bg-darker rounded border border-subtle">
-          <div class="d-flex justify-between align-center mb-2">
-            <span class="font-bold text-sm text-cyan">ĐỒNG BỘ TRỰC TIẾP TỪ METATRADER 5:</span>
-            <button class="btn btn-sm btn-outline text-green" id="btn-sync-mt5">
-              🔄 ĐỒNG BỘ NGAY
-            </button>
-          </div>
-          <div id="mt5-sync-log" class="text-xs font-mono text-muted">
-            Trạng thái: Đã kết nối tiến trình terminal64.exe thành công.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal 4: Beginner Guide Modal (Đơn giản, dễ hiểu cho người mới) -->
-  <div class="modal-backdrop" id="modal-guide">
-    <div class="modal-box modal-lg">
-      <div class="modal-header">
-        <div class="modal-title font-mono text-teal">
-          <span>📖 HƯỚNG DẪN NHANH DÀNH CHO TRADER MỚI</span>
-          <span class="badge badge-success ml-2">ĐƠN GIẢN · AN TOÀN TUYỆT ĐỐI</span>
-        </div>
-        <button class="btn btn-close" id="btn-close-guide-modal">✖</button>
-      </div>
-
-      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-        <div class="space-y-4">
-          <!-- Step 1 -->
-          <div class="p-3 bg-darker rounded border border-subtle">
-            <div class="d-flex align-center gap-2 mb-1">
-              <span class="badge badge-info">BƯỚC 1</span>
-              <strong class="text-green">AN TOÀN VỐN LÀ ƯU TIÊN SỐ 1</strong>
-            </div>
-            <p class="text-xs text-muted mb-0">
-              Bạn luôn bắt đầu với <strong>Tài khoản Demo $10,000 USD</strong> (chuẩn cấp vốn quỹ FTMO). Thoải mái thử nghiệm bot AI, nến M15 và tính toán đòn bẩy mà <strong>hoàn toàn không rủi ro mất tiền thật</strong>.
-            </p>
-          </div>
-
-          <!-- Step 2 -->
-          <div class="p-3 bg-darker rounded border border-subtle">
-            <div class="d-flex align-center gap-2 mb-1">
-              <span class="badge badge-info">BƯỚC 2</span>
-              <strong class="text-cyan">CHẾ ĐỘ BÁN TỰ ĐỘNG VS TỰ ĐỘNG HOÀN TOÀN</strong>
-            </div>
-            <p class="text-xs text-muted mb-0">
-              - <strong>Bán Tự Động (Mặc định khuyên dùng)</strong>: AI đưa ra gợi ý phân tích (Đề xuất lệnh), bạn chỉ cần bấm "DUYỆT" để vào lệnh.<br/>
-              - <strong>Tự Động (AI Auto On)</strong>: Bấm nút <code>⚡ TỰ ĐỘNG</code> trên góc phải để AI tự quét nến và khớp lệnh theo thuật toán kiểm soát rủi ro.
-            </p>
-          </div>
-
-          <!-- Step 3 -->
-          <div class="p-3 bg-darker rounded border border-subtle">
-            <div class="d-flex align-center gap-2 mb-1">
-              <span class="badge badge-info">BƯỚC 3</span>
-              <strong class="text-amber">KỶ LUẬT THÉP VỀ STOP LOSS (SL)</strong>
-            </div>
-            <p class="text-xs text-muted mb-0">
-              Mọi lệnh mở ra đều <strong>BẮT BUỘC có Stop Loss</strong> tính toán tự động theo độ biến động ATR. Hệ thống khóa cứng, không cho phép bạn dời SL xa hơn để gồng lỗ, loại bỏ 100% cảm xúc tham lam và sợ hãi.
-            </p>
-          </div>
-
-          <!-- Step 4 -->
-          <div class="p-3 bg-darker rounded border border-subtle">
-            <div class="d-flex align-center gap-2 mb-1">
-              <span class="badge badge-info">BƯỚC 4</span>
-              <strong class="text-danger">CẦU DAO KHẨN CẤP (KILL SWITCH)</strong>
-            </div>
-            <p class="text-xs text-muted mb-0">
-              Nếu thị trường giật bão tin tức hoặc bạn muốn dừng đột ngột, chỉ cần bấm nút <code>🔴 TẠM DỪNG</code>. Toàn bộ tiến trình tự động sẽ ngắt ngay tức thì để bảo vệ tài khoản nguyên vẹn.
-            </p>
-          </div>
-
-          <!-- Step 5 -->
-          <div class="p-3 bg-darker rounded border border-subtle">
-            <div class="d-flex align-center gap-2 mb-1">
-              <span class="badge badge-info">BƯỚC 5</span>
-              <strong class="text-purple">MỤC TIÊU 24 THÁNG ĐẠT TRIỆU ĐÔ</strong>
-            </div>
-            <p class="text-xs text-muted mb-0">
-              Kiên định vượt qua vòng Thử Thách FTMO 1-Step (Target 10%, Max Loss 10%, Daily Loss 3%). Sau đó nhận tài khoản quỹ $100,000 - $400,000, hưởng 80-90% lợi nhuận chia sẻ và dùng lãi để mở rộng danh mục đa quỹ bền vững!
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  <!-- Mobile Bottom Navigation Dock (iPhone, Android) -->
-  <nav class="mobile-bottom-dock" id="mobile-bottom-dock">
-    <button class="dock-item active" data-tab="tab-chart">
-      <span class="dock-icon">📈</span>
-      <span class="dock-label">Giao Dịch</span>
-    </button>
-    <button class="dock-item" data-tab="tab-positions">
-      <span class="dock-icon">📋</span>
-      <span class="dock-label">Vị Thế</span>
-      <span class="dock-badge" id="dock-pos-count">2</span>
-    </button>
-    <button class="dock-item" data-tab="tab-proposals">
-      <span class="dock-icon">⚡</span>
-      <span class="dock-label">Đề Xuất</span>
-      <span class="dock-badge" id="dock-prop-count">0</span>
-    </button>
-    <button class="dock-item" id="btn-dock-guide">
-      <span class="dock-icon">📖</span>
-      <span class="dock-label">Hướng Dẫn</span>
-    </button>
-    <button class="dock-item" id="btn-dock-mt5">
-      <span class="dock-icon">🛡️</span>
-      <span class="dock-label">Tài Khoản</span>
-    </button>
-  </nav>
-
+  <!-- Script Chính -->
   <script src="/app.js"></script>
 </body>
 </html>

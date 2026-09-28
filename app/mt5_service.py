@@ -227,6 +227,34 @@ def send_live_order(symbol: str, side: str, volume: float, sl: Optional[float] =
         "message": f"Đặt lệnh #{result.order} thành công tại giá {result.price}"
     }
 
+def close_all_live_positions() -> Dict[str, Any]:
+    """Đóng toàn bộ các vị thế đang mở trên MT5 (Emergency Kill Switch)."""
+    if not ensure_connected():
+        return {"success": False, "error": "MT5 chưa kết nối"}
+    
+    positions = get_live_positions()
+    if not positions:
+        return {"success": True, "closed_count": 0, "message": "Không có vị thế nào đang mở."}
+    
+    closed = []
+    errors = []
+    for p in positions:
+        ticket = p["ticket"]
+        res = close_live_position(ticket)
+        if res.get("success"):
+            closed.append(ticket)
+        else:
+            errors.append(f"#{ticket}: {res.get('error')}")
+            
+    return {
+        "success": len(errors) == 0,
+        "closed_count": len(closed),
+        "total": len(positions),
+        "tickets": closed,
+        "errors": errors,
+        "message": f"Đã đóng thành công {len(closed)}/{len(positions)} vị thế MT5."
+    }
+
 def get_ftmo_risk_status() -> Dict[str, Any]:
     """Kiểm tra rủi ro tài khoản theo chuẩn FTMO 1-Step."""
     acc = get_live_account()

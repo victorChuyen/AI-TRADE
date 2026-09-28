@@ -4,6 +4,7 @@ import math
 from datetime import datetime, timezone
 
 SYMBOLS = {
+    "AUDCAD": {"base": 0.9930, "amp": .002, "digits": 5, "spread": .00015, "contract": 100000, "step": .01, "label": "Australian / Canadian Dollar"},
     "BTCUSD": {"base": 65000.0, "amp": 1200.0, "digits": 2, "spread": 15.0, "contract": 1, "step": .01, "label": "Bitcoin / US Dollar"},
     "XAUUSD": {"base": 2650.0, "amp": 13.0, "digits": 2, "spread": 0.35, "contract": 100, "step": .01, "label": "Vàng / US Dollar"},
     "WTI":    {"base": 72.50, "amp": 1.2, "digits": 2, "spread": 0.04, "contract": 1000, "step": .01, "label": "Dầu WTI / US Dollar"},
