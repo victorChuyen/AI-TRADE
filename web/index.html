@@ -2,7 +2,11 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LuckyTrade">
+  <meta name="theme-color" content="#0a0e17">
   <title>Lucky Trade AI — Command Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,91 +14,203 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <!-- Top Navigation & Global Status -->
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo-box">
-        <span class="logo-icon">⚡</span>
-      </div>
-      <div>
-        <div class="brand-title">LUCKY TRADE AI</div>
-        <div class="brand-sub">QUANTITATIVE TRADING & RISK GATE</div>
-      </div>
-    </div>
+  <div class="app-layout">
+    <!-- Backdrop for mobile drawer -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-    <!-- Live Metric Badges -->
-    <div class="top-metrics">
-      <div class="metric-card clickable-card" id="card-mt5" title="Nhấn để kiểm tra và xem tài khoản MT5 Chuyền Ngọc (#5056580335)">
-        <div class="metric-label">CỔNG MT5</div>
-        <div class="metric-val text-green" id="metric-mt5-status"><span class="pulse-dot"></span> LIVE (#5056580335)</div>
+    <!-- =====================================================================
+         CỘT 1: SIDEBAR TIẾN TRÌNH PIPELINE (PIPELINE NAVIGATION SIDEBAR)
+         ===================================================================== -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="logo-box">
+            <span class="logo-icon">⚡</span>
+          </div>
+          <div>
+            <div class="brand-title">OPC AI Trader</div>
+            <div class="brand-sub">LUCKY TRADE OS</div>
+          </div>
+        </div>
+        <button class="btn-close-sidebar" id="btn-close-sidebar" title="Đóng menu">✕</button>
       </div>
-      <div class="metric-card">
-        <div class="metric-label">TRẠNG THÁI</div>
-        <div class="metric-val status-live"><span class="pulse-dot"></span> METAQUOTES DEMO</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">VỐN (EQUITY)</div>
-        <div class="metric-val text-cyan" id="metric-equity">$10,000.00</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">SỐ DƯ (BALANCE)</div>
-        <div class="metric-val" id="metric-balance">$10,000.00</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">LÃI/LỖ NGÀY</div>
-        <div class="metric-val" id="metric-daily-pnl">$0.00</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">RỦI RO ĐANG MỞ</div>
-        <div class="metric-val text-amber" id="metric-open-risk">$0.00</div>
-      </div>
-    </div>
 
-    <!-- Quick Global Actions -->
-    <div class="top-actions">
-      <!-- Mode Toggle Switch: BÁN TỰ ĐỘNG vs TỰ ĐỘNG HOÀN TOÀN -->
-      <div class="mode-toggle-container" title="Chuyển đổi giữa BÁN TỰ ĐỘNG (Duyệt tay) và TỰ ĐỘNG HOÀN TOÀN (AI Auto-Execution)">
-        <span class="mode-title-label">CHẾ ĐỘ:</span>
-        <button class="btn btn-mode" id="btn-mode">
-          <span class="mode-dot" id="mode-dot"></span>
-          <span id="mode-text">BÁN TỰ ĐỘNG</span>
+      <!-- MT5 Live Badge Card -->
+      <div class="sidebar-mt5-badge clickable-card" id="card-mt5" title="Nhấn để xem kết nối MT5 Chuyền Ngọc (#5056580335)">
+        <div class="mt5-badge-header">
+          <span class="pulse-dot"></span>
+          <span class="mt5-badge-title">MT5 Live</span>
+          <span class="mt5-badge-tag tag-live" id="metric-mt5-status">LIVE (#5056580335)</span>
+        </div>
+        <div class="mt5-badge-detail" id="sidebar-mt5-detail">
+          Chuyền Ngọc · MetaQuotes-Demo
+        </div>
+      </div>
+
+      <!-- Pipeline Navigation Links -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">TIẾN TRÌNH PIPELINE</div>
+
+        <div class="nav-group-title">BƯỚC 1: QUAN SÁT THỊ TRƯỜNG</div>
+        <a href="#card-chart" class="sidebar-nav-item active" data-target="card-chart">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">1. Biểu Đồ & Giá Nến M15</span>
+        </a>
+        <a href="#watchlist-bar" class="sidebar-nav-item" data-target="watchlist-bar">
+          <span class="nav-icon">🗞️</span>
+          <span class="nav-text">2. Danh Mục 6 Tài Sản</span>
+        </a>
+
+        <div class="nav-group-title">BƯỚC 2: PHÂN TÍCH & CHIẾN LƯỢC AI</div>
+        <a href="#card-neural" class="sidebar-nav-item" data-target="card-neural">
+          <span class="nav-icon">🧬</span>
+          <span class="nav-text">3. Mạng Nơ-ron Quyết Định</span>
+        </a>
+        <a href="#card-proposals" class="sidebar-nav-item" data-target="card-proposals">
+          <span class="nav-icon">📈</span>
+          <span class="nav-text">4. Đề Xuất Chiến Lược</span>
+          <span class="nav-badge" id="sidebar-proposals-count">0</span>
+        </a>
+        <a href="#card-ai" class="sidebar-nav-item" data-target="card-ai">
+          <span class="nav-icon">💬</span>
+          <span class="nav-text">5. Lucky AI Thẩm Định</span>
+        </a>
+
+        <div class="nav-group-title">BƯỚC 3: THỰC THI & SỔ LỆNH MT5</div>
+        <a href="#card-order" class="sidebar-nav-item" data-target="card-order">
+          <span class="nav-icon">💰</span>
+          <span class="nav-text">6. Phiếu Vào Lệnh (Trade)</span>
+        </a>
+        <a href="#card-positions" class="sidebar-nav-item" data-target="card-positions">
+          <span class="nav-icon">💼</span>
+          <span class="nav-text">7. Sổ Vị Thế MT5 (Live)</span>
+          <span class="nav-badge badge-green" id="sidebar-positions-count">2</span>
+        </a>
+
+        <div class="nav-group-title">BƯỚC 4: AN TOÀN VỐN & QUẢN TRỊ QUỸ</div>
+        <a href="#card-risk" class="sidebar-nav-item" data-target="card-risk">
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-text">8. Quản Trị Rủi Ro FTMO</span>
+        </a>
+        <a href="#card-logs" class="sidebar-nav-item" data-target="card-logs">
+          <span class="nav-icon">📜</span>
+          <span class="nav-text">9. Nhật Ký & Đối Soát</span>
+        </a>
+
+        <div class="nav-group-title">TRỢ GIÚP & HỌC TẬP</div>
+        <button type="button" class="sidebar-nav-item" id="sidebar-btn-guide">
+          <span class="nav-icon">📖</span>
+          <span class="nav-text">10. Hướng Dẫn Người Mới</span>
+        </button>
+        <a href="http://127.0.0.1:3000" target="_blank" class="sidebar-nav-item text-cyan">
+          <span class="nav-icon">🚀</span>
+          <span class="nav-text">Mở Lucky Trade Lab</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="sidebar-mode-box">
+          <span class="mode-title-label">CHẾ ĐỘ GIAO DỊCH:</span>
+          <button class="btn btn-mode w-100" id="btn-mode">
+            <span class="mode-dot" id="mode-dot"></span>
+            <span id="mode-text">BÁN TỰ ĐỘNG</span>
+          </button>
+        </div>
+        <button class="btn btn-halt w-100" id="btn-halt" title="Cầu dao dừng khẩn cấp">
+          🔴 TẠM DỪNG (KILL SWITCH)
         </button>
       </div>
+    </aside>
 
-      <!-- Quick Beginner Guide Button -->
-      <button class="btn btn-outline text-teal" id="btn-open-guide-modal" title="Hướng dẫn từng bước đơn giản cho người mới tham gia">
-        📖 HƯỚNG DẪN DỄ HIỂU
-      </button>
+    <!-- =====================================================================
+         CỘT 2: KHÔNG GIAN LÀM VIỆC CHÍNH (MAIN WORKSPACE)
+         ===================================================================== -->
+    <div class="app-main">
+      <!-- Top Navigation & Global Status -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-menu-toggle" id="btn-menu-toggle" aria-label="Mở Menu" title="Mở danh mục Pipeline">
+            <span>☰</span>
+          </button>
+          <div class="brand brand-topbar">
+            <div class="logo-box">
+              <span class="logo-icon">⚡</span>
+            </div>
+            <div>
+              <div class="brand-title">OPC AI Trader</div>
+            </div>
+          </div>
+        </div>
 
-      <!-- Link to Lucky Trade Lab React UI -->
-      <a href="http://127.0.0.1:3000" target="_blank" class="btn btn-outline text-cyan" title="Mở Lucky Trade Lab (Bản React 19 / Vite trên cổng 3000)" style="text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
-        🚀 MỞ LUCKY LAB
-      </a>
+        <!-- Live Metric Badges -->
+        <div class="top-metrics">
+          <div class="metric-card">
+            <div class="metric-label">TRẠNG THÁI</div>
+            <div class="metric-val status-live"><span class="pulse-dot"></span> METAQUOTES DEMO</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">VỐN (EQUITY)</div>
+            <div class="metric-val text-cyan" id="metric-equity">$10,000.00</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">SỐ DƯ (BALANCE)</div>
+            <div class="metric-val" id="metric-balance">$10,000.00</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">LÃI/LỖ NGÀY</div>
+            <div class="metric-val" id="metric-daily-pnl">$0.00</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">RỦI RO ĐANG MỞ</div>
+            <div class="metric-val text-amber" id="metric-open-risk">$0.00</div>
+          </div>
+        </div>
 
-      <button class="btn btn-step" id="btn-advance" title="Chuyển sang nến M15 tiếp theo">
-        <span>⏩ NẾN TIẾP</span>
-        <span class="badge-step" id="badge-step">#120</span>
-      </button>
-      <button class="btn btn-step" id="btn-reconcile" title="Đối soát vị thế với Broker MT5" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">
-        <span>🔍 ĐỐI SOÁT</span>
-      </button>
-      <button class="btn btn-halt" id="btn-halt" title="Khóa mở vị thế mới (Kill-Switch)">
-        🔴 TẠM DỪNG
-      </button>
-    </div>
-  </header>
+        <!-- Quick Global Actions -->
+        <div class="top-actions">
+          <button class="btn btn-outline text-teal d-none-mobile" id="btn-open-guide-modal" title="Hướng dẫn từng bước đơn giản cho người mới tham gia">
+            📖 HƯỚNG DẪN
+          </button>
+          <button class="btn btn-step" id="btn-advance" title="Chuyển sang nến M15 tiếp theo">
+            <span>⏩ NẾN TIẾP</span>
+            <span class="badge-step" id="badge-step">#120</span>
+          </button>
+          <button class="btn btn-step" id="btn-reconcile" title="Đối soát vị thế với Broker MT5" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">
+            <span>🔍 ĐỐI SOÁT</span>
+          </button>
+        </div>
+      </header>
 
   <!-- 6 Target Asset Watchlist Ticker -->
   <section class="watchlist-bar" id="watchlist-bar">
     <!-- Populated by JS -->
   </section>
 
+  <!-- Mobile Segmented View Control (Hiển thị mượt mà trên iPhone, Android, Tablet) -->
+  <nav class="mobile-tabs-bar" id="mobile-tabs-bar">
+    <button class="mobile-tab-btn active" data-tab="tab-chart">
+      <span>📊 Biểu Đồ & Lệnh</span>
+    </button>
+    <button class="mobile-tab-btn" data-tab="tab-positions">
+      <span>📋 Vị Thế MT5</span>
+      <span class="badge-tab-count" id="mobile-pos-badge">2</span>
+    </button>
+    <button class="mobile-tab-btn" data-tab="tab-proposals">
+      <span>⚡ Đề Xuất AI</span>
+      <span class="badge-tab-count" id="mobile-prop-badge">0</span>
+    </button>
+    <button class="mobile-tab-btn" data-tab="tab-risk">
+      <span>🛡️ Rủi Ro & MT5</span>
+    </button>
+  </nav>
+
   <!-- Main Grid Dashboard -->
   <main class="main-container">
     <!-- Left Column: Chart, Order Ticket, Market Depth -->
     <div class="col-left">
       <!-- Chart Card -->
-      <div class="card chart-card">
+      <div class="card chart-card" id="card-chart">
         <div class="card-header">
           <div class="header-left">
             <span class="active-sym-title" id="chart-symbol">EURUSD</span>
@@ -117,7 +233,7 @@
       </div>
 
       <!-- AI Neural Decision Mesh (Mạng Nơ-ron Quyết Định AI) -->
-      <div class="card neural-card">
+      <div class="card neural-card" id="card-neural">
         <div class="card-header">
           <div class="d-flex align-center gap-2">
             <span class="pulse-dot pulse-cyan"></span>
@@ -142,7 +258,7 @@
       </div>
 
       <!-- Order Ticket (Semi-Auto Manual Desk) -->
-      <div class="card order-card">
+      <div class="card order-card" id="card-order">
         <div class="card-header">
           <span class="card-title">PHIẾU LỆNH BÁN TỰ ĐỘNG</span>
           <span class="text-muted" id="order-step-tag">Step #120</span>
@@ -173,6 +289,14 @@
             <div class="form-group">
               <label>KHỐI LƯỢNG (LOT)</label>
               <input type="number" id="order-volume" class="form-control" value="0.10" step="0.01" min="0.01" max="10">
+              <div class="quick-lot-chips" id="quick-lot-chips">
+                <button type="button" class="btn-lot-chip" data-lot="0.01">0.01</button>
+                <button type="button" class="btn-lot-chip" data-lot="0.05">0.05</button>
+                <button type="button" class="btn-lot-chip active" data-lot="0.10">0.10</button>
+                <button type="button" class="btn-lot-chip" data-lot="0.20">0.20</button>
+                <button type="button" class="btn-lot-chip" data-lot="0.50">0.50</button>
+                <button type="button" class="btn-lot-chip" data-lot="1.00">1.00</button>
+              </div>
             </div>
             <div class="form-group">
               <label>DỪNG LỖ (SL)</label>
@@ -198,7 +322,7 @@
       </div>
 
       <!-- Active Positions Table -->
-      <div class="card positions-card">
+      <div class="card positions-card" id="card-positions">
         <div class="card-header">
           <span class="card-title">VỊ THẾ ĐANG MỞ (<span id="open-positions-count">0</span>)</span>
           <span class="badge" id="open-pnl-badge">P/L: $0.00</span>
@@ -231,7 +355,7 @@
     <!-- Right Column: Trade Proposals Desk, AI Analyst, Risk Desk, Logs -->
     <div class="col-right">
       <!-- Trade Proposals Desk (Phase 1C Strategy Engine) -->
-      <div class="card proposals-card">
+      <div class="card proposals-card" id="card-proposals">
         <div class="card-header">
           <div class="d-flex align-center gap-2">
             <span class="card-title">ĐỀ XUẤT TỪ CHIẾN LƯỢC</span>
@@ -264,7 +388,7 @@
       </div>
 
       <!-- Lucky Analyst AI Assistant -->
-      <div class="card ai-card">
+      <div class="card ai-card" id="card-ai">
         <div class="card-header">
           <div class="d-flex align-center gap-2">
             <span class="ai-badge">AI ANALYST</span>
@@ -278,7 +402,7 @@
       </div>
 
       <!-- Risk Desk & Strategy Matrix -->
-      <div class="card risk-card">
+      <div class="card risk-card" id="card-risk">
         <div class="card-header">
           <span class="card-title">BÀN QUẢN TRỊ RỦI RO (RISK DESK)</span>
           <span class="badge badge-green">RISK GATE: ON</span>
@@ -307,7 +431,7 @@
       </div>
 
       <!-- Event & Audit Log -->
-      <div class="card logs-card">
+      <div class="card logs-card" id="card-logs">
         <div class="card-header">
           <span class="card-title">NHẬT KÝ THỰC THI (AUDIT TRAIL)</span>
           <a href="/api/export" class="btn btn-sm btn-outline" download>📥 XUẤT CSV</a>
@@ -318,6 +442,8 @@
       </div>
     </div>
   </main>
+  </div> <!-- /.app-main -->
+</div> <!-- /.app-layout -->
 
   <!-- Modal: Obsidian Brain & AI Gateway -->
   <div class="modal-backdrop" id="modal-obsidian">
@@ -571,7 +697,31 @@
         </div>
       </div>
     </div>
-  </div>
+  <!-- Mobile Bottom Navigation Dock (iPhone, Android) -->
+  <nav class="mobile-bottom-dock" id="mobile-bottom-dock">
+    <button class="dock-item active" data-tab="tab-chart">
+      <span class="dock-icon">📈</span>
+      <span class="dock-label">Giao Dịch</span>
+    </button>
+    <button class="dock-item" data-tab="tab-positions">
+      <span class="dock-icon">📋</span>
+      <span class="dock-label">Vị Thế</span>
+      <span class="dock-badge" id="dock-pos-count">2</span>
+    </button>
+    <button class="dock-item" data-tab="tab-proposals">
+      <span class="dock-icon">⚡</span>
+      <span class="dock-label">Đề Xuất</span>
+      <span class="dock-badge" id="dock-prop-count">0</span>
+    </button>
+    <button class="dock-item" id="btn-dock-guide">
+      <span class="dock-icon">📖</span>
+      <span class="dock-label">Hướng Dẫn</span>
+    </button>
+    <button class="dock-item" id="btn-dock-mt5">
+      <span class="dock-icon">🛡️</span>
+      <span class="dock-label">Tài Khoản</span>
+    </button>
+  </nav>
 
   <script src="/app.js"></script>
 </body>

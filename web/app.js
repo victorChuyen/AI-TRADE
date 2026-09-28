@@ -100,6 +100,93 @@ function setupEventListeners() {
   const btnSaveAi = document.getElementById('btn-save-ai-cfg');
   if (btnSaveAi) btnSaveAi.addEventListener('click', handleSaveAiConfig);
 
+  // Mobile Sidebar Drawer Controls
+  const btnToggleSidebar = document.getElementById('btn-menu-toggle');
+  const btnCloseSidebar = document.getElementById('btn-close-sidebar');
+  const sidebar = document.getElementById('app-sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+
+  const closeSidebar = () => {
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('active');
+  };
+
+  if (btnToggleSidebar && sidebar && backdrop) {
+    btnToggleSidebar.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      backdrop.classList.add('active');
+    });
+  }
+  if (btnCloseSidebar) btnCloseSidebar.addEventListener('click', closeSidebar);
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+  // Sidebar Nav Items Click (Smooth Scroll)
+  document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      document.querySelectorAll('.sidebar-nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const targetId = item.getAttribute('data-target');
+      if (targetId) {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+      if (window.innerWidth <= 1024) closeSidebar();
+    });
+  });
+
+  // Quick Lot Chips in Order Form
+  document.querySelectorAll('.btn-lot-chip').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.btn-lot-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const lot = btn.getAttribute('data-lot');
+      const volInput = document.getElementById('order-volume');
+      if (volInput && lot) {
+        volInput.value = lot;
+        updateOrderPreviewCalculations();
+      }
+    });
+  });
+
+  // Mobile Tabs Bar & Bottom Dock Navigation
+  const handleTabSwitch = (tabKey) => {
+    document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabKey);
+    });
+    document.querySelectorAll('.dock-item[data-tab]').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabKey);
+    });
+
+    const mapping = {
+      'tab-chart': 'card-chart',
+      'tab-positions': 'card-positions',
+      'tab-proposals': 'card-proposals',
+      'tab-risk': 'card-risk'
+    };
+    const targetId = mapping[tabKey];
+    if (targetId) {
+      const el = document.getElementById(targetId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => handleTabSwitch(btn.getAttribute('data-tab')));
+  });
+  document.querySelectorAll('.dock-item[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => handleTabSwitch(btn.getAttribute('data-tab')));
+  });
+
+  const btnDockGuide = document.getElementById('btn-dock-guide');
+  if (btnDockGuide) btnDockGuide.addEventListener('click', openGuideModal);
+  const btnSidebarGuide = document.getElementById('sidebar-btn-guide');
+  if (btnSidebarGuide) btnSidebarGuide.addEventListener('click', openGuideModal);
+  const btnDockMt5 = document.getElementById('btn-dock-mt5');
+  if (btnDockMt5) btnDockMt5.addEventListener('click', openMt5Modal);
+
   // Responsive Chart & Neural Auto-Resize
   window.addEventListener('resize', () => {
     if (STATE) renderChart();
@@ -324,7 +411,14 @@ function renderPositions() {
   const pnlBadge = document.getElementById('open-pnl-badge');
 
   const positions = STATE.positions || [];
-  countEl.textContent = positions.length;
+  if (countEl) countEl.textContent = positions.length;
+
+  const sidePosCount = document.getElementById('sidebar-positions-count');
+  if (sidePosCount) sidePosCount.textContent = positions.length;
+  const mobPosBadge = document.getElementById('mobile-pos-badge');
+  if (mobPosBadge) mobPosBadge.textContent = positions.length;
+  const dockPosCount = document.getElementById('dock-pos-count');
+  if (dockPosCount) dockPosCount.textContent = positions.length;
 
   let totalFloating = 0;
   positions.forEach(p => {
@@ -374,7 +468,13 @@ function renderProposals() {
   const batchBar = document.getElementById('proposals-batch-bar');
   const proposals = STATE.proposals || [];
 
-  countEl.textContent = proposals.length;
+  if (countEl) countEl.textContent = proposals.length;
+  const sidePropCount = document.getElementById('sidebar-proposals-count');
+  if (sidePropCount) sidePropCount.textContent = proposals.length;
+  const mobPropBadge = document.getElementById('mobile-prop-badge');
+  if (mobPropBadge) mobPropBadge.textContent = proposals.length;
+  const dockPropCount = document.getElementById('dock-prop-count');
+  if (dockPropCount) dockPropCount.textContent = proposals.length;
 
   if (proposals.length === 0) {
     SELECTED_PROPOSALS.clear();
