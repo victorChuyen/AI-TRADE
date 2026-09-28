@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Lucky Trade Lab — Market Intelligence & Trading Command Center</title>
+    <meta name="description" content="AI-assisted market intelligence, deterministic replay, paper & live trading command center." />
+    <meta property="og:title" content="Lucky Trade Lab — Market Intelligence & Trading Command Center" />
+    <meta property="og:description" content="AI-assisted market intelligence, deterministic replay, paper & live trading command center." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        // Global error suppressor for environment/sandbox anomalies
+        function shouldSuppress(msg) {
+          if (!msg) return false;
+          var str = String(msg);
+          return (
+            str.indexOf('Cannot set property fetch') !== -1 ||
+            str.indexOf('has only a getter') !== -1 ||
+            str.indexOf('WebSocket closed without opened') !== -1
+          );
+        }
+
+        window.addEventListener('error', function(event) {
+          var msg = (event && (event.message || (event.error && event.error.message))) || '';
+          if (shouldSuppress(msg)) {
+            if (event.preventDefault) event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = (event && event.reason && (event.reason.message || event.reason)) || '';
+          if (shouldSuppress(reason)) {
+            if (event.preventDefault) event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        var prevOnError = window.onerror;
+        window.onerror = function(msg, url, line, col, err) {
+          var text = String(msg || '') + ' ' + (err && err.message ? err.message : '');
+          if (shouldSuppress(text)) {
+            return true;
+          }
+          if (typeof prevOnError === 'function') {
+            return prevOnError.apply(this, arguments);
+          }
+        };
+
+        // Ensure window.fetch has both a getter and a setter so assignments never throw
+        try {
+          var currentFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : window.fetch;
+          var fetchGetter = function() {
+            return currentFetch;
+          };
+          var fetchSetter = function(newVal) {
+            currentFetch = typeof newVal === 'function' ? newVal.bind(window) : newVal;
+          };
+
+          // 1. Prototype level
+          if (typeof Window !== 'undefined' && Window.prototype) {
+            try {
+              Object.defineProperty(Window.prototype, 'fetch', {
+                get: fetchGetter,
+                set: fetchSetter,
+                configurable: true,
+                enumerable: true
+              });
+            } catch (eProto) {}
+          }
+
+          // 2. Global / Window instance level
+          try {
+            Object.defineProperty(window, 'fetch', {
+              get: fetchGetter,
+              set: fetchSetter,
+              configurable: true,
+              enumerable: true
+            });
+          } catch (eWin) {
+            try {
+              Object.defineProperty(window, 'fetch', {
+                value: currentFetch,
+                writable: true,
+                configurable: true,
+                enumerable: true
+              });
+            } catch (eVal) {}
+          }
+        } catch (eGlobal) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

@@ -1,0 +1,2 @@
+# Optional; install into a project virtual environment on Windows x64.
+MetaTrader5>=5.0,<6

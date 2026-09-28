@@ -1,0 +1,21 @@
+{$APP_DOMAIN:localhost} {
+    encode gzip zstd
+
+    # Route API and health endpoints to backend
+    handle /api/* {
+        reverse_proxy api:8000
+    }
+    handle /healthz {
+        reverse_proxy api:8000
+    }
+    handle /readyz {
+        reverse_proxy api:8000
+    }
+
+    # Route static frontend
+    handle {
+        root * /srv/dist
+        try_files {path} /index.html
+        file_server
+    }
+}

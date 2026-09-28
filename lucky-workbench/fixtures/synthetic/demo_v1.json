@@ -1,0 +1,147 @@
+[
+  {
+    "schema_version": 1,
+    "event_id": "evt_clean_gain_signal_001",
+    "dataset_id": "demo-v1",
+    "provenance": "SYNTHETIC",
+    "venue": "polymarket",
+    "condition_id": "0xcond_btc_100k_q4",
+    "market_slug": "will-btc-hit-100k-in-2026",
+    "rules_hash": "sha256_fixture_rules_btc_v1",
+    "received_at_utc": "2026-09-24T12:00:00.000Z",
+    "received_monotonic_ns": 1000000000,
+    "collector_boot_id": "boot_synth_01",
+    "book_a": {
+      "token_id": "tok_btc_yes",
+      "source_timestamp_ms": 1790208000000,
+      "bids": [{"price": "0.4500", "size": "25.0"}],
+      "asks": [{"price": "0.4600", "size": "15.0"}]
+    },
+    "book_b": {
+      "token_id": "tok_btc_no",
+      "source_timestamp_ms": 1790208000000,
+      "bids": [{"price": "0.4800", "size": "25.0"}],
+      "asks": [{"price": "0.4900", "size": "15.0"}]
+    },
+    "fee_model_status": "ASSUMED",
+    "market_state": "OPEN",
+    "sequence_status": "SYNCED",
+    "btc_ref_price": "64500.00"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt_clean_gain_fill_002",
+    "dataset_id": "demo-v1",
+    "provenance": "SYNTHETIC",
+    "venue": "polymarket",
+    "condition_id": "0xcond_btc_100k_q4",
+    "market_slug": "will-btc-hit-100k-in-2026",
+    "rules_hash": "sha256_fixture_rules_btc_v1",
+    "received_at_utc": "2026-09-24T12:00:00.200Z",
+    "received_monotonic_ns": 1000200000,
+    "collector_boot_id": "boot_synth_01",
+    "book_a": {
+      "token_id": "tok_btc_yes",
+      "source_timestamp_ms": 1790208000180,
+      "bids": [{"price": "0.4550", "size": "25.0"}],
+      "asks": [{"price": "0.4620", "size": "15.0"}]
+    },
+    "book_b": {
+      "token_id": "tok_btc_no",
+      "source_timestamp_ms": 1790208000180,
+      "bids": [{"price": "0.4850", "size": "25.0"}],
+      "asks": [{"price": "0.4910", "size": "15.0"}]
+    },
+    "fee_model_status": "ASSUMED",
+    "market_state": "OPEN",
+    "sequence_status": "SYNCED",
+    "btc_ref_price": "64520.00"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt_fee_hurdle_rejected_003",
+    "dataset_id": "demo-v1",
+    "provenance": "SYNTHETIC",
+    "venue": "polymarket",
+    "condition_id": "0xcond_fed_rate_cut",
+    "market_slug": "fed-interest-rate-cut-november",
+    "rules_hash": "sha256_fixture_rules_fed_v1",
+    "received_at_utc": "2026-09-24T12:00:02.000Z",
+    "received_monotonic_ns": 1002000000,
+    "collector_boot_id": "boot_synth_01",
+    "book_a": {
+      "token_id": "tok_fed_yes",
+      "source_timestamp_ms": 1790208001950,
+      "bids": [{"price": "0.4900", "size": "20.0"}],
+      "asks": [{"price": "0.4950", "size": "25.0"}]
+    },
+    "book_b": {
+      "token_id": "tok_fed_no",
+      "source_timestamp_ms": 1790208001950,
+      "bids": [{"price": "0.4900", "size": "20.0"}],
+      "asks": [{"price": "0.4950", "size": "25.0"}]
+    },
+    "fee_model_status": "ASSUMED",
+    "market_state": "OPEN",
+    "sequence_status": "SYNCED",
+    "btc_ref_price": "64550.00"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt_partial_fill_imbalance_004",
+    "dataset_id": "demo-v1",
+    "provenance": "SYNTHETIC",
+    "venue": "polymarket",
+    "condition_id": "0xcond_eth_staking_etf",
+    "market_slug": "eth-staking-etf-approved",
+    "rules_hash": "sha256_fixture_rules_eth_v1",
+    "received_at_utc": "2026-09-24T12:00:04.000Z",
+    "received_monotonic_ns": 1004000000,
+    "collector_boot_id": "boot_synth_01",
+    "book_a": {
+      "token_id": "tok_eth_yes",
+      "source_timestamp_ms": 1790208003900,
+      "bids": [{"price": "0.4400", "size": "10.0"}],
+      "asks": [{"price": "0.4500", "size": "4.0"}]
+    },
+    "book_b": {
+      "token_id": "tok_eth_no",
+      "source_timestamp_ms": 1790208003900,
+      "bids": [{"price": "0.4700", "size": "20.0"}],
+      "asks": [{"price": "0.4800", "size": "20.0"}]
+    },
+    "fee_model_status": "ASSUMED",
+    "market_state": "OPEN",
+    "sequence_status": "SYNCED",
+    "btc_ref_price": "64540.00"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt_stale_data_rejection_005",
+    "dataset_id": "demo-v1",
+    "provenance": "SYNTHETIC",
+    "venue": "polymarket",
+    "condition_id": "0xcond_sol_all_time_high",
+    "market_slug": "solana-new-ath-2026",
+    "rules_hash": "sha256_fixture_rules_sol_v1",
+    "received_at_utc": "2026-09-24T12:00:10.000Z",
+    "received_monotonic_ns": 1010000000,
+    "collector_boot_id": "boot_synth_01",
+    "book_a": {
+      "token_id": "tok_sol_yes",
+      "source_timestamp_ms": 1790207998000,
+      "bids": [{"price": "0.4300", "size": "20.0"}],
+      "asks": [{"price": "0.4400", "size": "20.0"}]
+    },
+    "book_b": {
+      "token_id": "tok_sol_no",
+      "source_timestamp_ms": 1790207998000,
+      "bids": [{"price": "0.4600", "size": "20.0"}],
+      "asks": [{"price": "0.4700", "size": "20.0"}]
+    },
+    "fee_model_status": "ASSUMED",
+    "market_state": "OPEN",
+    "sequence_status": "SYNCED",
+    "btc_ref_price": "64560.00"
+  }
+]

@@ -1,0 +1,1 @@
+"""Lucky Trade local application."""

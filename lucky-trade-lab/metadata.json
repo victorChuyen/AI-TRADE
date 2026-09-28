@@ -1,0 +1,8 @@
+{
+  "name": "Lucky Trade Lab",
+  "description": "AI-assisted market intelligence, deterministic replay, paper \u0026 live trading command center.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

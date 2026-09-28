@@ -1,0 +1,33 @@
+{
+    "mode": "demo",
+    "execution": "auto",
+    "port": 8766,
+    "db_path": "",
+    "broker": {
+        "name": "MetaQuotes-Demo",
+        "mt5_path": null,
+        "server": "MetaQuotes-Demo",
+        "login": 5056580335,
+        "password": "_iDgN8Bs",
+        "investor_password": "_p0pRsTo",
+        "account_mode": "demo",
+        "verified": true
+    },
+    "risk": {
+        "max_risk_per_trade_pct": "0.35",
+        "max_daily_loss_pct": "1.2",
+        "max_total_risk_pct": "2.0",
+        "max_positions": 5,
+        "max_positions_per_symbol": 2,
+        "min_sl_distance_pips": "10",
+        "max_spread_pips": "5",
+        "confirmed_by_victor": true
+    },
+    "strategies": [],
+    "ai_api_key": "",
+    "ai_model": "gpt-4o",
+    "ai_base_url": "https://api.openai.com/v1",
+    "audit_log_path": "",
+    "magic_start": 202600,
+    "magic_end": 202699
+}
