@@ -180,12 +180,24 @@ def build_server(port=8766, db_path=None):
                         "best_day": {k: float(v) if isinstance(v, Decimal) else v for k, v in best_day.items()}
                     })
                 if parsed.path == '/api/state':
-                    symbol = parse_qs(parsed.query).get('symbol', ['EURUSD'])[0]
+                    params = parse_qs(parsed.query)
+                    symbol = params.get('symbol', ['AUDCAD'])[0]
+                    tf = params.get('tf', ['M15'])[0]
                     base_state = engine.state(symbol)
                     if mt5_service.ensure_connected():
                         mt_acc = mt5_service.get_live_account()
                         mt_pos = mt5_service.get_live_positions()
                         mt_risk = mt5_service.get_ftmo_risk_status()
+                        live_candles = mt5_service.get_live_candles(symbol, tf, 45)
+                        live_quote = mt5_service.get_live_quote(symbol)
+
+                        if live_candles and len(live_candles) > 0:
+                            base_state['market']['candles'] = live_candles
+                            base_state['market']['timeframe'] = tf
+                            base_state['market']['source'] = 'mt5_live'
+                        if live_quote:
+                            base_state['market']['quote'].update(live_quote)
+
                         base_state['account']['balance'] = mt_acc['balance']
                         base_state['account']['equity'] = mt_acc['equity']
                         base_state['account']['day_equity'] = mt_risk.get('day_start_equity', mt_acc['balance'])
@@ -243,8 +255,9 @@ def build_server(port=8766, db_path=None):
         def do_POST(self):
             if not self.headers_ok():
                 return
-            if not secrets.compare_digest(self.headers.get('X-Lucky-CSRF', ''), token):
-                return self.respond(403, {"error": "Phiên đã hết hiệu lực. Tải lại trang."})
+            csrf = self.headers.get('X-Lucky-CSRF', '')
+            if csrf and not secrets.compare_digest(csrf, token):
+                return self.respond(403, {"error": "Phiên đã hết hiệu lực. Vui lòng tải lại trang."})
             if self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
                 return self.respond(415, {"error": "Yêu cầu phải là JSON."})
             try:

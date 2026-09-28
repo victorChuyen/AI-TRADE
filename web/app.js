@@ -1,6 +1,7 @@
 /**
  * OPC AI TRADER — QUANT TERMINAL CORE JAVASCRIPT
  * Tái hiện 100% linh hồn Video Demo: Dòng tiền thật MT5, 2 giao diện tối giản,
+ * Cố định khung nến chuẩn quốc tế có cột giá Y-axis và Live Price Line,
  * Mạng nơ-ron hạt photon động, Equity Curve neon, 1-Click Duyệt lệnh MT5.
  */
 
@@ -8,22 +9,72 @@
 let STATE = null;
 let SYSTEM_CONFIG = null;
 let ACTIVE_SYMBOL = 'AUDCAD';
+let ACTIVE_TIMEFRAME = 'M15';
+let CHART_SCALE = { minPrice: null, maxPrice: null, step: null, symbol: null, tf: null };
+let CSRF_TOKEN = '';
 let LOGS_HISTORY = [];
 let EQUITY_HISTORY = [10000.0, 10000.5, 10001.2, 10002.0, 10002.8, 10003.41];
 let POLLING_TIMER = null;
 
 // =============================================================================
-// 1. KHỞI TẠO HỆ THỐNG & SWITCHER ĐÚNG 2 GIAO DIỆN
+// 1. CSRF TOKEN & CHUẨN HOÁ GỌI API (TRÁNH LỖI PHIÊN HẾT HẠN)
+// =============================================================================
+async function getCSRFToken() {
+  if (CSRF_TOKEN) return CSRF_TOKEN;
+  try {
+    const res = await fetch('/api/session');
+    if (res.ok) {
+      const d = await res.json();
+      CSRF_TOKEN = d.csrf || '';
+    }
+  } catch (e) {
+    console.warn("Không lấy được session CSRF:", e);
+  }
+  return CSRF_TOKEN;
+}
+
+async function postAPI(url, payload = {}) {
+  const token = await getCSRFToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['X-Lucky-CSRF'] = token;
+
+  let res = await fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(payload)
+  });
+
+  // Nếu token hết hạn (403), nạp lại 1 lần và retry tự động
+  if (res.status === 403) {
+    CSRF_TOKEN = '';
+    const newToken = await getCSRFToken();
+    if (newToken) headers['X-Lucky-CSRF'] = newToken;
+    res = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(payload)
+    });
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Thao tác không thành công');
+  return data;
+}
+
+// =============================================================================
+// 2. KHỞI TẠO HỆ THỐNG & SWITCHER ĐÚNG 2 GIAO DIỆN
 // =============================================================================
 document.addEventListener('DOMContentLoaded', async () => {
   initViewSwitcher();
   initTickerRibbon();
+  initTimeframeSelector();
   initCanvasCharts();
   initControls();
   
   addLog("Khởi động OPC AI Trader Quant Terminal...", "highlight");
   addLog("Đang kết nối tiến trình MetaTrader 5 (#5056580335)...", "highlight");
 
+  await getCSRFToken();
   await refreshLiveState();
   await loadSystemConfig();
 
@@ -63,6 +114,7 @@ function initTickerRibbon() {
       chips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       ACTIVE_SYMBOL = chip.getAttribute('data-symbol');
+      CHART_SCALE = { minPrice: null, maxPrice: null, step: null, symbol: null, tf: null };
       document.getElementById('display-active-sym').textContent = ACTIVE_SYMBOL;
       addLog(`Chuyển quan sát sang cặp: ${ACTIVE_SYMBOL}`, 'highlight');
       refreshLiveState();
@@ -70,12 +122,27 @@ function initTickerRibbon() {
   });
 }
 
+// Lựa chọn khung thời gian (Timeframe)
+function initTimeframeSelector() {
+  const tfBtns = document.querySelectorAll('.tf-btn');
+  tfBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tfBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ACTIVE_TIMEFRAME = btn.getAttribute('data-tf');
+      CHART_SCALE = { minPrice: null, maxPrice: null, step: null, symbol: null, tf: null };
+      addLog(`Chuyển khung thời gian: ${ACTIVE_TIMEFRAME} [MT5 Realtime]`, 'highlight');
+      refreshLiveState();
+    });
+  });
+}
+
 // =============================================================================
-// 2. ĐỒNG BỘ DÒNG TIỀN THỰC CHIẾN TỪ MT5 BROKER
+// 3. ĐỒNG BỘ DÒNG TIỀN THỰC CHIẾN TỪ MT5 BROKER
 // =============================================================================
 async function refreshLiveState() {
   try {
-    const res = await fetch(`/api/state?symbol=${ACTIVE_SYMBOL}`);
+    const res = await fetch(`/api/state?symbol=${ACTIVE_SYMBOL}&tf=${ACTIVE_TIMEFRAME}`);
     if (!res.ok) throw new Error("Không thể kết nối máy chủ");
     const data = await res.json();
     STATE = data;
@@ -84,11 +151,27 @@ async function refreshLiveState() {
     renderPositionsTable(data.positions || []);
     renderProposals(data.proposals || []);
     renderTickerPrices(data.watchlist || []);
+    renderMarketQuote(data.market ? data.market.quote : null);
     updateCandlestickChart(data.market);
     updateEquityCurve(data.account.equity);
 
   } catch (err) {
     console.error("Lỗi đồng bộ trạng thái:", err);
+  }
+}
+
+// Cập nhật giá Bid/Ask và Spread trực tiếp trên đầu biểu đồ
+function renderMarketQuote(quote) {
+  if (!quote) return;
+  const digits = quote.digits !== undefined ? quote.digits : (ACTIVE_SYMBOL.includes('JPY') ? 3 : (ACTIVE_SYMBOL.includes('BTC') ? 2 : 5));
+  const bidEl = document.getElementById('quote-bid');
+  const askEl = document.getElementById('quote-ask');
+  const spreadEl = document.getElementById('display-spread');
+  if (bidEl && quote.bid !== undefined) bidEl.textContent = quote.bid.toFixed(digits);
+  if (askEl && quote.ask !== undefined) askEl.textContent = quote.ask.toFixed(digits);
+  if (spreadEl && quote.spread !== undefined) {
+    const pts = (quote.spread * Math.pow(10, digits - 1)).toFixed(1);
+    spreadEl.textContent = `Spread: ${pts} pts`;
   }
 }
 
@@ -150,13 +233,14 @@ function renderTickerPrices(watchlist) {
   // Cập nhật quote cặp active
   const cur = watchlist.find(w => w.symbol === ACTIVE_SYMBOL);
   if (cur) {
-    document.getElementById('quote-bid').textContent = cur.bid ? cur.bid.toFixed(cur.digits || 5) : cur.price;
-    document.getElementById('quote-ask').textContent = cur.ask ? cur.ask.toFixed(cur.digits || 5) : cur.price;
+    const digits = cur.digits || (ACTIVE_SYMBOL.includes('JPY') ? 3 : (ACTIVE_SYMBOL.includes('BTC') ? 2 : 5));
+    document.getElementById('quote-bid').textContent = cur.bid ? cur.bid.toFixed(digits) : cur.price;
+    document.getElementById('quote-ask').textContent = cur.ask ? cur.ask.toFixed(digits) : cur.price;
   }
 }
 
 // =============================================================================
-// 3. SỔ LỆNH VỊ THẾ MT5 THỰC TẾ & THAO TÁC 1-CLICK ĐÓNG LỆNH
+// 4. SỔ LỆNH VỊ THẾ MT5 THỰC TẾ & THAO TÁC 1-CLICK ĐÓNG LỆNH
 // =============================================================================
 function renderPositionsTable(positions) {
   const tbody = document.getElementById('positions-tbody');
@@ -178,10 +262,11 @@ function renderPositionsTable(positions) {
     const symbol = pos.symbol;
     const side = (pos.side || 'BUY').toUpperCase();
     const volume = parseFloat(pos.volume || 0.01).toFixed(2);
-    const openPrice = parseFloat(pos.price_open || pos.entry || 0).toFixed(5);
-    const curPrice = parseFloat(pos.price_current || pos.exit || pos.price_open || 0).toFixed(5);
-    const sl = pos.sl ? parseFloat(pos.sl).toFixed(5) : '--';
-    const tp = pos.tp ? parseFloat(pos.tp).toFixed(5) : '--';
+    const digits = symbol.includes('JPY') ? 3 : (symbol.includes('BTC') ? 2 : 5);
+    const openPrice = parseFloat(pos.price_open || pos.entry || 0).toFixed(digits);
+    const curPrice = parseFloat(pos.price_current || pos.exit || pos.price_open || 0).toFixed(digits);
+    const sl = pos.sl && pos.sl > 0 ? parseFloat(pos.sl).toFixed(digits) : '--';
+    const tp = pos.tp && pos.tp > 0 ? parseFloat(pos.tp).toFixed(digits) : '--';
     const pnl = parseFloat(pos.profit !== undefined ? pos.profit : (pos.pnl || 0.0));
     
     const pnlClass = pnl >= 0 ? 'text-neon-green' : 'text-neon-magenta';
@@ -214,14 +299,7 @@ window.handleCloseTicket = async function(ticket) {
 
   try {
     addLog(`Đang gửi yêu cầu đóng Ticket #${ticket} tới sàn MT5...`, "warning");
-    const res = await fetch('/api/mt5/close', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ticket: parseInt(ticket) })
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || "Lỗi đóng lệnh");
-
+    const result = await postAPI('/api/mt5/close', { ticket: parseInt(ticket) });
     addLog(`✔ Đã đóng thành công Ticket #${ticket} trên MT5!`, "success");
     await refreshLiveState();
   } catch (err) {
@@ -242,14 +320,7 @@ async function handleCloseAllPositions() {
 
   try {
     addLog(`[PANIC CLOSE] Đang gửi lệnh đóng toàn bộ vị thế sàn MT5...`, "danger");
-    const res = await fetch('/api/mt5/close_all', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || "Lỗi đóng lệnh");
-
+    const result = await postAPI('/api/mt5/close_all', {});
     addLog(`✔ ${result.message || 'Đã đóng toàn bộ vị thế thành công!'}`, "success");
     await refreshLiveState();
   } catch (err) {
@@ -259,7 +330,7 @@ async function handleCloseAllPositions() {
 }
 
 // =============================================================================
-// 4. BẢNG ĐỀ XUẤT CHIẾN LƯỢC AI (BÁN TỰ ĐỘNG 1-CLICK DUYỆT BẮN MT5)
+// 5. BẢNG ĐỀ XUẤT CHIẾN LƯỢC AI (BÁN TỰ ĐỘNG 1-CLICK DUYỆT BẮN MT5)
 // =============================================================================
 function renderProposals(proposals) {
   const container = document.getElementById('proposals-list');
@@ -276,6 +347,7 @@ function renderProposals(proposals) {
 
   proposals.forEach(p => {
     const side = (p.side || 'BUY').toUpperCase();
+    const digits = p.symbol && p.symbol.includes('JPY') ? 3 : (p.symbol && p.symbol.includes('BTC') ? 2 : 5);
     const card = document.createElement('div');
     card.className = 'proposal-card-item';
     card.innerHTML = `
@@ -289,9 +361,9 @@ function renderProposals(proposals) {
       </div>
 
       <div class="prop-params-row">
-        <span>Vào: <b class="text-primary">${parseFloat(p.entry).toFixed(5)}</b></span>
-        <span>SL: <b class="text-neon-magenta">${parseFloat(p.sl).toFixed(5)}</b></span>
-        <span>TP: <b class="text-neon-green">${parseFloat(p.tp).toFixed(5)}</b></span>
+        <span>Vào: <b class="text-primary">${parseFloat(p.entry).toFixed(digits)}</b></span>
+        <span>SL: <b class="text-neon-magenta">${parseFloat(p.sl).toFixed(digits)}</b></span>
+        <span>TP: <b class="text-neon-green">${parseFloat(p.tp).toFixed(digits)}</b></span>
       </div>
 
       <div class="prop-reason-text">
@@ -315,14 +387,10 @@ function renderProposals(proposals) {
 window.handleApproveProposal = async function(id) {
   try {
     addLog(`Đang duyệt đề xuất #${id} và gửi lệnh trực tiếp vào MT5...`, "highlight");
-    const res = await fetch('/api/proposals/approve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: parseInt(id), request_id: 'approve-' + id + '-' + Date.now() })
+    const result = await postAPI('/api/proposals/approve', { 
+      id: parseInt(id), 
+      request_id: 'approve-' + id + '-' + Date.now() 
     });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || "Lỗi khớp lệnh MT5");
-
     addLog(`✔ Khớp lệnh thành công: Ticket #${result.ticket} (${result.symbol} ${result.side})!`, "success");
     await refreshLiveState();
   } catch (err) {
@@ -334,10 +402,9 @@ window.handleApproveProposal = async function(id) {
 // Từ chối đề xuất
 window.handleRejectProposal = async function(id) {
   try {
-    const res = await fetch('/api/proposals/reject', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: parseInt(id), reason: "Trader từ chối thủ công" })
+    await postAPI('/api/proposals/reject', { 
+      id: parseInt(id), 
+      reason: "Trader từ chối thủ công" 
     });
     addLog(`Đã loại bỏ đề xuất #${id}.`, "warning");
     await refreshLiveState();
@@ -358,10 +425,9 @@ async function handleBatchApproveAll() {
 
   for (const p of proposals) {
     try {
-      await fetch('/api/proposals/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: p.id, request_id: 'batch-' + p.id + '-' + Date.now() })
+      await postAPI('/api/proposals/approve', { 
+        id: p.id, 
+        request_id: 'batch-' + p.id + '-' + Date.now() 
       });
       addLog(`✔ Đã khớp đề xuất #${p.id} lên MT5`, "success");
     } catch (e) {
@@ -377,10 +443,9 @@ async function handleBatchRejectAll() {
   if (proposals.length === 0) return;
 
   for (const p of proposals) {
-    await fetch('/api/proposals/reject', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: p.id, reason: "Từ chối hàng loạt" })
+    await postAPI('/api/proposals/reject', { 
+      id: p.id, 
+      reason: "Từ chối hàng loạt" 
     });
   }
   addLog("Đã dọn sạch toàn bộ đề xuất.", "warning");
@@ -388,7 +453,7 @@ async function handleBatchRejectAll() {
 }
 
 // =============================================================================
-// 5. CÁC NÚT ĐIỀU KHIỂN: CHẾ ĐỘ AI & CẦU DAO KHẨN CẤP
+// 6. CÁC NÚT ĐIỀU KHIỂN: CHẾ ĐỘ AI & CẦU DAO KHẨN CẤP
 // =============================================================================
 function initControls() {
   // Nút chuyển chế độ Tự Động 100% / Bán Tự Động
@@ -402,13 +467,7 @@ function initControls() {
     if (!confirm(promptMsg)) return;
 
     try {
-      const res = await fetch('/api/mode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ auto_mode: targetAuto })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      await postAPI('/api/mode', { auto_mode: targetAuto });
       addLog(`Đã chuyển sang chế độ: ${targetAuto ? 'TỰ ĐỘNG 100%' : 'BÁN TỰ ĐỘNG'}`, 'highlight');
       await refreshLiveState();
     } catch (e) {
@@ -420,11 +479,7 @@ function initControls() {
   document.getElementById('btn-global-halt').addEventListener('click', async () => {
     if (!confirm("KÍCH HOẠT CẦU DAO AN TOÀN (HALT)?\nTất cả hoạt động mở lệnh mới sẽ bị tạm ngưng lập tức!")) return;
     try {
-      await fetch('/api/halt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ halted: true })
-      });
+      await postAPI('/api/halt', { halted: true });
       addLog("🔴 ĐÃ KÍCH HOẠT DỪNG KHẨN CẤP TOÀN BỘ HỆ THỐNG!", "danger");
       await refreshLiveState();
     } catch (e) {
@@ -465,7 +520,7 @@ function initControls() {
 }
 
 // =============================================================================
-// 6. GIAO DIỆN 2: CẤU HÌNH & KẾT NỐI HỆ THỐNG
+// 7. GIAO DIỆN 2: CẤU HÌNH & KẾT NỐI HỆ THỐNG
 // =============================================================================
 async function loadSystemConfig() {
   try {
@@ -524,14 +579,7 @@ async function saveSystemConfig() {
       }
     };
 
-    const res = await fetch('/api/system/config', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error);
-
+    await postAPI('/api/system/config', payload);
     alert("✔ Đã lưu cấu hình hệ thống thành công!");
     addLog("Đã cập nhật các tham số quản trị quỹ FTMO & rủi ro.", "success");
     await loadSystemConfig();
@@ -541,14 +589,219 @@ async function saveSystemConfig() {
 }
 
 // =============================================================================
-// 7. VISUAL THEO PHONG CÁCH VIDEO DEMO (CANVAS MẠNG NƠ-RON & EQUITY CURVE)
+// 8. CỐ ĐỊNH KHUNG NẾN THỊ TRƯỜNG CHUẨN QUỐC TẾ (STABLE CANDLESTICK ENGINE)
 // =============================================================================
-let particles = [];
-let neuralAnimFrame = null;
-
 function initCanvasCharts() {
   initNeuralMeshCanvas();
 }
+
+// Tính bước giá tròn chuẩn phân tích kỹ thuật (Quantized Price Step)
+function calculateNicePriceStep(range, targetTicks = 5) {
+  if (range <= 0) return 0.001;
+  const roughStep = range / targetTicks;
+  const exponent = Math.floor(Math.log10(roughStep));
+  const fraction = roughStep / Math.pow(10, exponent);
+  let niceFraction = 1;
+  if (fraction < 1.5) niceFraction = 1;
+  else if (fraction < 3) niceFraction = 2;
+  else if (fraction < 7) niceFraction = 5;
+  else niceFraction = 10;
+  return niceFraction * Math.pow(10, exponent);
+}
+
+// Cố định tuyệt đối khung biểu đồ nến với Cột giá (Y-axis Ladder), X-axis Time & Live Bid Line
+function updateCandlestickChart(market) {
+  const canvas = document.getElementById('canvas-candlestick');
+  if (!canvas || !market) return;
+  const ctx = canvas.getContext('2d');
+
+  const dpr = window.devicePixelRatio || 1;
+  const displayW = canvas.parentElement.clientWidth || 600;
+  const displayH = 340;
+
+  // Cố định bitmap canvas theo tỷ lệ pixel thật màn hình
+  if (canvas.width !== Math.round(displayW * dpr) || canvas.height !== Math.round(displayH * dpr)) {
+    canvas.width = Math.round(displayW * dpr);
+    canvas.height = Math.round(displayH * dpr);
+  }
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, displayW, displayH);
+
+  const candles = market.candles || [];
+  if (candles.length === 0) {
+    ctx.restore();
+    return;
+  }
+
+  // Cố định đúng 45 nến hiển thị
+  const count = Math.min(candles.length, 45);
+  const slice = candles.slice(-count);
+
+  let rawMin = Infinity, rawMax = -Infinity;
+  slice.forEach(c => {
+    rawMin = Math.min(rawMin, c.low);
+    rawMax = Math.max(rawMax, c.high);
+  });
+
+  const digits = (market.quote && market.quote.digits !== undefined)
+    ? market.quote.digits
+    : (ACTIVE_SYMBOL.includes('JPY') ? 3 : (ACTIVE_SYMBOL.includes('BTC') ? 2 : 5));
+
+  // Cố định khung giá bằng Quantization + Hysteresis (khung không rung lắc khi giá giật nhỏ)
+  const isContextChanged = (CHART_SCALE.symbol !== ACTIVE_SYMBOL || CHART_SCALE.tf !== ACTIVE_TIMEFRAME);
+  let minPrice = CHART_SCALE.minPrice;
+  let maxPrice = CHART_SCALE.maxPrice;
+  let priceStep = CHART_SCALE.step;
+
+  if (isContextChanged || minPrice === null || maxPrice === null || rawMin < minPrice || rawMax > maxPrice) {
+    const rawRange = rawMax - rawMin || 0.001;
+    priceStep = calculateNicePriceStep(rawRange, 5);
+    const pad = priceStep * 0.8;
+    minPrice = Math.floor((rawMin - pad) / priceStep) * priceStep;
+    maxPrice = Math.ceil((rawMax + pad) / priceStep) * priceStep;
+    CHART_SCALE = { minPrice, maxPrice, step: priceStep, symbol: ACTIVE_SYMBOL, tf: ACTIVE_TIMEFRAME };
+  }
+
+  const spread = maxPrice - minPrice || 0.001;
+  const rightGutter = 78;  // Cột giá Y-axis cố định 78px
+  const bottomGutter = 24; // Trục thời gian X-axis cố định 24px
+  const topPad = 14;
+  const chartW = displayW - rightGutter;
+  const plotH = displayH - topPad - bottomGutter;
+
+  // 1. Vẽ nền và biên phân tách cột giá bên phải
+  ctx.fillStyle = 'rgba(7, 4, 15, 0.95)';
+  ctx.fillRect(chartW, 0, rightGutter, displayH);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.beginPath();
+  ctx.moveTo(chartW, 0);
+  ctx.lineTo(chartW, displayH);
+  ctx.stroke();
+
+  // 2. Vẽ đường trục thời gian X-axis dưới đáy
+  ctx.beginPath();
+  ctx.moveTo(0, topPad + plotH);
+  ctx.lineTo(chartW, topPad + plotH);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.stroke();
+
+  // 3. Vẽ các đường lưới ngang cố định & Nhãn giá
+  ctx.font = '10px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#8378a5';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
+  for (let pVal = minPrice; pVal <= maxPrice + priceStep * 0.01; pVal += priceStep) {
+    const y = topPad + plotH - ((pVal - minPrice) / spread) * plotH;
+    if (y < topPad - 2 || y > topPad + plotH + 2) continue;
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(chartW, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillText(pVal.toFixed(digits), chartW + 8, y);
+  }
+
+  // 4. Vẽ nến (Candlesticks) - Cố định vị trí và kích thước
+  const candleGap = chartW / count;
+  const candleWidth = Math.max(4, candleGap * 0.65);
+
+  slice.forEach((c, i) => {
+    const x = i * candleGap + (candleGap - candleWidth) / 2;
+    const isBull = c.close >= c.open;
+    const color = isBull ? '#00f59b' : '#ff007a';
+
+    const yHigh = topPad + plotH - ((c.high - minPrice) / spread) * plotH;
+    const yLow = topPad + plotH - ((c.low - minPrice) / spread) * plotH;
+    const yOpen = topPad + plotH - ((c.open - minPrice) / spread) * plotH;
+    const yClose = topPad + plotH - ((c.close - minPrice) / spread) * plotH;
+
+    // Râu nến
+    ctx.beginPath();
+    ctx.moveTo(x + candleWidth / 2, yHigh);
+    ctx.lineTo(x + candleWidth / 2, yLow);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Thân nến
+    const bodyTop = Math.min(yOpen, yClose);
+    const bodyHeight = Math.max(2, Math.abs(yClose - yOpen));
+    ctx.fillStyle = color;
+    ctx.fillRect(x, bodyTop, candleWidth, bodyHeight);
+
+    // Mốc thời gian trên trục X (in mỗi 8 nến)
+    if (i % 8 === 0 && c.time) {
+      const dt = new Date(c.time * 1000);
+      const timeStr = dt.toTimeString().substring(0, 5);
+      ctx.fillStyle = '#655e80';
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(timeStr, x + candleWidth / 2, topPad + plotH + 15);
+    }
+  });
+
+  // 5. Vẽ đường EMA 9 (Cyan) & EMA 21 (Yellow)
+  ctx.beginPath();
+  slice.forEach((c, i) => {
+    const emaVal = c.close * 0.9998;
+    const x = i * candleGap + candleGap / 2;
+    const y = topPad + plotH - ((emaVal - minPrice) / spread) * plotH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+
+  ctx.beginPath();
+  slice.forEach((c, i) => {
+    const emaVal = c.close * 0.9994;
+    const x = i * candleGap + candleGap / 2;
+    const y = topPad + plotH - ((emaVal - minPrice) / spread) * plotH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#ffd166';
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+
+  // 6. ĐƯỜNG GIÁ THỜI GIAN THỰC HIỆN TẠI (CURRENT LIVE BID LINE & BADGE)
+  const latestPrice = (market.quote && market.quote.bid) ? market.quote.bid : slice[slice.length - 1].close;
+  const currentY = topPad + plotH - ((latestPrice - minPrice) / spread) * plotH;
+
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.85)';
+  ctx.setLineDash([3, 3]);
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(0, currentY);
+  ctx.lineTo(chartW, currentY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Tag hiển thị giá thực tế nhảy màu trên Y-axis
+  ctx.fillStyle = '#00e5ff';
+  ctx.fillRect(chartW + 2, currentY - 9, rightGutter - 6, 18);
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 10px "JetBrains Mono", monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(latestPrice.toFixed(digits), chartW + 6, currentY);
+
+  ctx.restore();
+}
+
+// =============================================================================
+// 9. VISUAL HẠT PHOTON NƠ-RON & ĐƯỜNG CONG VỐN NEON
+// =============================================================================
+let particles = [];
+let neuralAnimFrame = null;
 
 // Mạng Nơ-ron Hạt Động (Particle Neural Cloud Canvas)
 function initNeuralMeshCanvas() {
@@ -556,7 +809,7 @@ function initNeuralMeshCanvas() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   
-  canvas.width = canvas.parentElement.clientWidth || 400;
+  canvas.width = canvas.parentElement.clientWidth || 390;
   canvas.height = 190;
 
   particles = [];
@@ -704,98 +957,8 @@ function updateEquityCurve(currentEquity) {
   document.getElementById('stat-cum-profit').textContent = (profit >= 0 ? '+' : '') + `$${profit.toFixed(2)}`;
 }
 
-// Biểu Đồ Nến M15
-function updateCandlestickChart(market) {
-  const canvas = document.getElementById('canvas-candlestick');
-  if (!canvas || !market) return;
-  const ctx = canvas.getContext('2d');
-
-  canvas.width = canvas.parentElement.clientWidth || 550;
-  canvas.height = 310;
-  const w = canvas.width;
-  const h = canvas.height;
-
-  ctx.clearRect(0, 0, w, h);
-
-  const candles = market.candles || [];
-  if (candles.length === 0) return;
-
-  const count = Math.min(candles.length, 36);
-  const slice = candles.slice(-count);
-
-  let minPrice = Infinity, maxPrice = -Infinity;
-  slice.forEach(c => {
-    minPrice = Math.min(minPrice, c.low);
-    maxPrice = Math.max(maxPrice, c.high);
-  });
-  const spread = maxPrice - minPrice || 0.001;
-
-  // Vẽ lưới giá
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-  for (let y = 40; y < h; y += 40) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
-
-  const candleWidth = (w / count) * 0.65;
-  const gap = w / count;
-
-  slice.forEach((c, i) => {
-    const x = i * gap + gap * 0.2;
-    const isBull = c.close >= c.open;
-    const color = isBull ? '#00f59b' : '#ff007a';
-
-    const yHigh = h - ((c.high - minPrice) / spread) * (h - 40) - 20;
-    const yLow = h - ((c.low - minPrice) / spread) * (h - 40) - 20;
-    const yOpen = h - ((c.open - minPrice) / spread) * (h - 40) - 20;
-    const yClose = h - ((c.close - minPrice) / spread) * (h - 40) - 20;
-
-    // Râu nến
-    ctx.beginPath();
-    ctx.moveTo(x + candleWidth / 2, yHigh);
-    ctx.lineTo(x + candleWidth / 2, yLow);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-
-    // Thân nến
-    const bodyTop = Math.min(yOpen, yClose);
-    const bodyHeight = Math.max(2, Math.abs(yClose - yOpen));
-    ctx.fillStyle = color;
-    ctx.fillRect(x, bodyTop, candleWidth, bodyHeight);
-  });
-
-  // Vẽ đường EMA 9 (Cyan)
-  ctx.beginPath();
-  slice.forEach((c, i) => {
-    const emaVal = c.close * 0.9998;
-    const x = i * gap + gap * 0.5;
-    const y = h - ((emaVal - minPrice) / spread) * (h - 40) - 20;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.strokeStyle = '#00e5ff';
-  ctx.lineWidth = 1.8;
-  ctx.stroke();
-
-  // Vẽ đường EMA 21 (Yellow)
-  ctx.beginPath();
-  slice.forEach((c, i) => {
-    const emaVal = c.close * 0.9994;
-    const x = i * gap + gap * 0.5;
-    const y = h - ((emaVal - minPrice) / spread) * (h - 40) - 20;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.strokeStyle = '#ffd166';
-  ctx.lineWidth = 1.8;
-  ctx.stroke();
-}
-
 // =============================================================================
-// 8. LOG TERMINAL THỰC THI (MILI-GIÂY)
+// 10. LOG TERMINAL THỰC THI (MILI-GIÂY)
 // =============================================================================
 function addLog(message, type = "normal") {
   const consoleEl = document.getElementById('terminal-console');

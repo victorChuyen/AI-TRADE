@@ -41,8 +41,18 @@ def ensure_connected() -> bool:
         acc = mt5.account_info()
         if acc is not None and getattr(acc, "login", 0) > 0:
             return True
-        # Thử khởi tạo lại
-        init_res = mt5.initialize(path=DEFAULT_PATH, login=DEFAULT_LOGIN, password=DEFAULT_PASSWORD, server=DEFAULT_SERVER, timeout=10000)
+        # Thử đính kèm ngay vào terminal đang chạy trên máy
+        if mt5.initialize():
+            acc = mt5.account_info()
+            if acc is not None and getattr(acc, "login", 0) > 0:
+                return True
+        # Thử khởi tạo với đường dẫn terminal64
+        if mt5.initialize(DEFAULT_PATH):
+            acc = mt5.account_info()
+            if acc is not None and getattr(acc, "login", 0) > 0:
+                return True
+        # Thử đăng nhập đầy đủ
+        init_res = mt5.initialize(path=DEFAULT_PATH, login=DEFAULT_LOGIN, password=DEFAULT_PASSWORD, server=DEFAULT_SERVER, timeout=5000)
         return bool(init_res)
     except Exception as exc:
         logger.warning("Error in ensure_connected: %s", exc)
@@ -254,6 +264,66 @@ def close_all_live_positions() -> Dict[str, Any]:
         "errors": errors,
         "message": f"Đã đóng thành công {len(closed)}/{len(positions)} vị thế MT5."
     }
+
+TIMEFRAME_MAP = {
+    "M1": 1,
+    "M5": 5,
+    "M15": 15,
+    "H1": 16385,
+    "D1": 16408,
+}
+
+def get_live_candles(symbol: str, tf_str: str = "M15", count: int = 45) -> Optional[List[Dict[str, Any]]]:
+    """Lấy dữ liệu nến thực tế từ máy chủ broker MT5."""
+    if not ensure_connected() or mt5 is None:
+        return None
+    try:
+        sym = symbol.upper()
+        mt5.symbol_select(sym, True)
+        tf_code = TIMEFRAME_MAP.get(tf_str.upper(), 15)
+        rates = mt5.copy_rates_from_pos(sym, tf_code, 0, count)
+        if rates is None or len(rates) == 0:
+            return None
+        candles = []
+        for r in rates:
+            candles.append({
+                "time": int(r[0]),
+                "open": float(r[1]),
+                "high": float(r[2]),
+                "low": float(r[3]),
+                "close": float(r[4]),
+                "volume": int(r[5])
+            })
+        return candles
+    except Exception as exc:
+        logger.warning("Error fetching live candles for %s: %s", symbol, exc)
+        return None
+
+def get_live_quote(symbol: str) -> Optional[Dict[str, Any]]:
+    """Lấy báo giá bid/ask/spread thực tế từ MT5 broker."""
+    if not ensure_connected() or mt5 is None:
+        return None
+    try:
+        sym = symbol.upper()
+        mt5.symbol_select(sym, True)
+        tick = mt5.symbol_info_tick(sym)
+        info = mt5.symbol_info(sym)
+        if not tick or not info:
+            return None
+        digits = getattr(info, "digits", 5)
+        bid = float(tick.bid)
+        ask = float(tick.ask)
+        spread = round(ask - bid, digits)
+        return {
+            "symbol": sym,
+            "bid": bid,
+            "ask": ask,
+            "spread": spread,
+            "digits": digits
+        }
+    except Exception as exc:
+        logger.warning("Error fetching live quote for %s: %s", symbol, exc)
+        return None
 
 def get_ftmo_risk_status() -> Dict[str, Any]:
     """Kiểm tra rủi ro tài khoản theo chuẩn FTMO 1-Step."""

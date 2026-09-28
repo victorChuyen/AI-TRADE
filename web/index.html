@@ -128,7 +128,13 @@
             <div class="card-topbar">
               <div class="topbar-sym-info">
                 <span class="active-sym-title" id="display-active-sym">AUDCAD</span>
-                <span class="badge-timeframe">M15 · REALTIME</span>
+                <div class="timeframe-selector" id="timeframe-selector">
+                  <button class="tf-btn" data-tf="M1">M1</button>
+                  <button class="tf-btn" data-tf="M5">M5</button>
+                  <button class="tf-btn active" data-tf="M15">M15</button>
+                  <button class="tf-btn" data-tf="H1">H1</button>
+                  <button class="tf-btn" data-tf="D1">D1</button>
+                </div>
                 <span class="badge-spread" id="display-spread">Spread: 1.1 pts</span>
               </div>
               <div class="topbar-quotes">
@@ -137,7 +143,7 @@
               </div>
             </div>
             <div class="canvas-wrap-chart">
-              <canvas id="canvas-candlestick" height="310"></canvas>
+              <canvas id="canvas-candlestick" height="350"></canvas>
             </div>
             <div class="chart-indicators-legend">
               <div class="legend-item"><span class="dot dot-cyan"></span> EMA 9 (Fast): <b id="ind-ema9">0.99280</b></div>
